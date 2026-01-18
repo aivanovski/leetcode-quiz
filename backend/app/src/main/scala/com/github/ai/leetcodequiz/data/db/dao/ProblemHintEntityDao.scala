@@ -1,7 +1,7 @@
-package com.github.ai.leetcodequiz.data.doobie.dao
+package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.doobie.execute
-import com.github.ai.leetcodequiz.data.doobie.model.{ProblemHintEntity, ProblemHintId, ProblemId}
+import com.github.ai.leetcodequiz.data.db.execute
+import com.github.ai.leetcodequiz.data.db.model.{ProblemHintEntity, ProblemHintId, ProblemId}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import doobie.implicits.*
 import doobie.syntax.ConnectionIOOps
@@ -11,6 +11,16 @@ import zio.{IO, Task, ZIO}
 class ProblemHintEntityDao(
   private val transactor: Transactor[Task]
 ) {
+
+  def getAll(): IO[DatabaseError, List[ProblemHintEntity]] = {
+    sql"""
+          SELECT id, problem_id, hint
+          FROM problem_hints
+       """
+      .query[ProblemHintEntity]
+      .to[List]
+      .execute(transactor)
+  }
 
   def getByProblemId(problemId: ProblemId): IO[DatabaseError, List[ProblemHintEntity]] = {
     sql"""

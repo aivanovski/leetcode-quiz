@@ -1,14 +1,10 @@
-package com.github.ai.leetcodequiz.data.doobie.dao
+package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.doobie.execute
-import com.github.ai.leetcodequiz.data.doobie.given
-import com.github.ai.leetcodequiz.data.doobie.model.{
-  QuestionnaireEntity,
-  QuestionnaireUid,
-  QuestionUid
-}
-import com.github.ai.leetcodequiz.data.doobie.model.QuestionnaireUid.given
-import com.github.ai.leetcodequiz.data.doobie.model.QuestionUid.given
+import com.github.ai.leetcodequiz.data.db.execute
+import com.github.ai.leetcodequiz.data.db.given
+import com.github.ai.leetcodequiz.data.db.model.{QuestionnaireEntity, QuestionnaireUid, QuestionUid}
+import com.github.ai.leetcodequiz.data.db.model.QuestionnaireUid.given
+import com.github.ai.leetcodequiz.data.db.model.QuestionUid.given
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import doobie.implicits.*
 import doobie.syntax.ConnectionIOOps

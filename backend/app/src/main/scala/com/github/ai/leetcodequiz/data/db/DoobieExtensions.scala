@@ -1,4 +1,4 @@
-package com.github.ai.leetcodequiz.data.doobie
+package com.github.ai.leetcodequiz.data.db
 
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import doobie.syntax.ConnectionIOOps

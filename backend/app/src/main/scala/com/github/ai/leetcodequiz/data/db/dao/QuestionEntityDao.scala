@@ -1,7 +1,7 @@
-package com.github.ai.leetcodequiz.data.doobie.dao
+package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.doobie.execute
-import com.github.ai.leetcodequiz.data.doobie.model.{QuestionEntity, QuestionUid, ProblemId}
+import com.github.ai.leetcodequiz.data.db.execute
+import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, ProblemId}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import doobie.implicits.*
 import doobie.syntax.ConnectionIOOps

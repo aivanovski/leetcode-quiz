@@ -1,7 +1,7 @@
-package com.github.ai.leetcodequiz.data.doobie.dao
+package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.doobie.execute
-import com.github.ai.leetcodequiz.data.doobie.model.{
+import com.github.ai.leetcodequiz.data.db.execute
+import com.github.ai.leetcodequiz.data.db.model.{
   QuestionUid,
   QuestionnaireUid,
   SubmissionEntity,

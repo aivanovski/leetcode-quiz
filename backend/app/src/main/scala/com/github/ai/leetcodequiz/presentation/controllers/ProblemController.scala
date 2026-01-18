@@ -2,8 +2,8 @@ package com.github.ai.leetcodequiz.presentation.controllers
 
 import com.github.ai.leetcodequiz.api.{ProblemItemDto, ProblemsItemDto}
 import com.github.ai.leetcodequiz.api.response.{GetProblemResponse, GetProblemsResponse}
-import com.github.ai.leetcodequiz.data.doobie.model.ProblemId
-import com.github.ai.leetcodequiz.data.doobie.repository.ProblemRepository
+import com.github.ai.leetcodequiz.data.db.model.ProblemId
+import com.github.ai.leetcodequiz.data.db.repository.ProblemRepository
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.utils.toJavaList

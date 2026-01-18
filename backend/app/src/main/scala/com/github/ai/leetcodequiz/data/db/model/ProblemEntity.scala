@@ -1,4 +1,4 @@
-package com.github.ai.leetcodequiz.data.doobie.model
+package com.github.ai.leetcodequiz.data.db.model
 
 final case class ProblemEntity(
   id: ProblemId,

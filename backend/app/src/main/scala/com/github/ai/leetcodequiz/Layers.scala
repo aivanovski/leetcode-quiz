@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz
 
-import com.github.ai.leetcodequiz.data.doobie.dao.{
+import com.github.ai.leetcodequiz.data.db.dao.{
   DataSyncEntityDao,
   ProblemEntityDao,
   ProblemHintEntityDao,
@@ -8,7 +8,7 @@ import com.github.ai.leetcodequiz.data.doobie.dao.{
   QuestionnaireEntityDao,
   SubmissionEntityDao
 }
-import com.github.ai.leetcodequiz.data.doobie.repository.{
+import com.github.ai.leetcodequiz.data.db.repository.{
   DataSyncRepository,
   ProblemRepository,
   QuestionRepository,

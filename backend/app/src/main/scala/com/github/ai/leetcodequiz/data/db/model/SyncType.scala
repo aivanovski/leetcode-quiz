@@ -1,4 +1,4 @@
-package com.github.ai.leetcodequiz.data.doobie.model
+package com.github.ai.leetcodequiz.data.db.model
 
 import doobie.util.meta.Meta
 

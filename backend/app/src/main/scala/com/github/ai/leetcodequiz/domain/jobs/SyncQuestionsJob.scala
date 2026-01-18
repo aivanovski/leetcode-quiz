@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz.domain.jobs
 
-import com.github.ai.leetcodequiz.data.doobie.model.{
+import com.github.ai.leetcodequiz.data.db.model.{
   DataSyncEntity,
   ProblemId,
   QuestionEntity,
@@ -8,7 +8,7 @@ import com.github.ai.leetcodequiz.data.doobie.model.{
   SyncType,
   SyncUid
 }
-import com.github.ai.leetcodequiz.data.doobie.repository.{
+import com.github.ai.leetcodequiz.data.db.repository.{
   DataSyncRepository,
   ProblemRepository,
   QuestionRepository

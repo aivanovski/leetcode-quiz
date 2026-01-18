@@ -1,9 +1,9 @@
-package com.github.ai.leetcodequiz.data.doobie.dao
+package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.doobie.{execute, given}
-import com.github.ai.leetcodequiz.data.doobie.model.{DataSyncEntity, SyncType}
-import com.github.ai.leetcodequiz.data.doobie.model.SyncType.given
-import com.github.ai.leetcodequiz.data.doobie.model.SyncUid.given
+import com.github.ai.leetcodequiz.data.db.{execute, given}
+import com.github.ai.leetcodequiz.data.db.model.{DataSyncEntity, SyncType}
+import com.github.ai.leetcodequiz.data.db.model.SyncType.given
+import com.github.ai.leetcodequiz.data.db.model.SyncUid.given
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import doobie.implicits.*
 import doobie.util.transactor.Transactor

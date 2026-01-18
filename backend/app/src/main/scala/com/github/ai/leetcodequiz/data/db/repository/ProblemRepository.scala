@@ -1,7 +1,7 @@
-package com.github.ai.leetcodequiz.data.doobie.repository
+package com.github.ai.leetcodequiz.data.db.repository
 
-import com.github.ai.leetcodequiz.data.doobie.dao.{ProblemEntityDao, ProblemHintEntityDao}
-import com.github.ai.leetcodequiz.data.doobie.model.{
+import com.github.ai.leetcodequiz.data.db.dao.{ProblemEntityDao, ProblemHintEntityDao}
+import com.github.ai.leetcodequiz.data.db.model.{
   ProblemEntity,
   ProblemHintEntity,
   ProblemId,
@@ -10,6 +10,7 @@ import com.github.ai.leetcodequiz.data.doobie.model.{
 import com.github.ai.leetcodequiz.entity.{Difficulty, Problem}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import zio.*
+import zio.direct.*
 
 class ProblemRepository(
   private val problemDao: ProblemEntityDao,
@@ -76,15 +77,14 @@ class ProblemRepository(
 
   /** Get all problems
     */
-  def getAll(): IO[DatabaseError, List[Problem]] = {
-    for {
-      problemEntities <- problemDao.getAll()
-      problems <- ZIO.foreach(problemEntities) { problemEntity =>
-        hintDao.getByProblemId(problemEntity.id).map { hints =>
-          fromEntities(problemEntity, hints)
-        }
-      }
-    } yield problems
+  def getAll(): IO[DatabaseError, List[Problem]] = defer {
+    val problemIdToHintsMap = hintDao.getAll().run.groupBy(h => h.problemId)
+    val problems = problemDao.getAll().run
+
+    problems.map { problem =>
+      val hints = problemIdToHintsMap.getOrElse(problem.id, List.empty)
+      fromEntities(problem, hints)
+    }
   }
 
   /** Add a new problem
