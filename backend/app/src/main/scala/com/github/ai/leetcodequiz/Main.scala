@@ -53,19 +53,20 @@ object Main extends ZIOAppDefault {
     }
   }
 
-  override def run: ZIO[ZIOAppArgs, Throwable, Unit] = {
-    for {
-      arguments <- CliArgumentParser().parse()
-      _ <- ZIO.logInfo(s"Starting server on port ${arguments.getPort()}")
-      _ <- ZIO.logInfo(s"   isUseInMemoryDatabase=${arguments.isUseInMemoryDatabase}")
-      _ <- ZIO.logInfo(s"   isPopulateTestData=${arguments.isPopulateTestData}")
-      _ <- ZIO.logInfo(s"   protocol=${arguments.protocol}")
+  override def run: ZIO[ZIOAppArgs, Throwable, Unit] = defer {
+    val arguments = CliArgumentParser().parse().run
 
-      serverConfig <- createServerConfig(arguments)
+    ZIO.logInfo(s"Starting server on port ${arguments.getPort()}").run
+    ZIO.logInfo(s"   isUseInMemoryDatabase=${arguments.isUseInMemoryDatabase}").run
+    ZIO.logInfo(s"   isPopulateTestData=${arguments.isPopulateTestData}").run
+    ZIO.logInfo(s"   protocol=${arguments.protocol}").run
 
-      _ <- application().provide(
+    val serverConfig = createServerConfig(arguments).run
+
+    application()
+      .provide(
         // Application arguments
-        ZLayer.succeed(arguments),
+//        ZLayer.succeed(arguments),
 
         // Use-Cases
         Layers.cloneGithubRepositoryUseCase,
@@ -82,7 +83,6 @@ object Main extends ZIOAppDefault {
         Layers.syncQuestionsJob,
 
         // Services
-        Layers.passwordService,
         Layers.startupService,
         Layers.scheduledJobService,
 
@@ -109,6 +109,7 @@ object Main extends ZIOAppDefault {
         ZLayer.succeed(serverConfig),
         DoobieTransactor.layer("db")
       )
-    } yield ()
+      .run
+    ()
   }
 }
