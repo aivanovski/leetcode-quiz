@@ -13,7 +13,7 @@ import com.github.ai.leetcodequiz.data.doobie.repository.{
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 
 import java.util.{Random, UUID}
-import zio.IO
+import zio.{IO, ZIO}
 import zio.direct.*
 
 class CreateNewQuestionnaireUseCase(
@@ -30,7 +30,7 @@ class CreateNewQuestionnaireUseCase(
   def createNewQuestionnaire(): IO[DomainError, QuestionnaireEntity] = defer {
     val questions = questionRepository.getAll().run
 
-    val (firstQuestionUid, secondQuestionUid) = getNextQuestions(questions)
+    val (firstQuestionUid, secondQuestionUid) = getNextQuestions(questions).run
 
     questionnaireRepository
       .add(
@@ -47,8 +47,12 @@ class CreateNewQuestionnaireUseCase(
 
   private def getNextQuestions(
     questions: List[QuestionEntity]
-  ): (QuestionUid, QuestionUid) = {
+  ): IO[DomainError, (QuestionUid, QuestionUid)] = defer {
     val random = Random()
+
+    if (questions.size < 2) {
+      ZIO.fail(DomainError("Not enough questions to select")).run
+    }
 
     val firstIndex = random.nextInt(questions.size)
     val secondIndex = random.nextInt(questions.size - 1)

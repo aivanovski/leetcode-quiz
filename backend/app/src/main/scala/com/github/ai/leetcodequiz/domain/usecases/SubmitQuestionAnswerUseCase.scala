@@ -68,7 +68,7 @@ class SubmitQuestionAnswerUseCase(
 
     val answeredQuestionUids = submissions.map(s => s.questionUid).toSet
     val unansweredQuestions = question.filter(q =>
-      !answeredQuestionUids.contains(q.uid) && q.uid != questionnaire.afterNext
+      !answeredQuestionUids.contains(q.uid) && !questionnaire.afterNext.contains(q.uid)
     )
 
     val nextQuestionUid = questionnaire.afterNext
