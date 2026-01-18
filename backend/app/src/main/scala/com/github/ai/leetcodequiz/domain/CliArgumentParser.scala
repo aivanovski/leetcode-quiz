@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz.domain
 
-import com.github.ai.leetcodequiz.utils.some
+import com.github.ai.leetcodequiz.entity.HttpProtocol.HTTP
 import com.github.ai.leetcodequiz.entity.{CliArguments, HttpProtocol}
 import com.github.ai.leetcodequiz.entity.exception.{DomainError, ParsingError}
 import zio.*
@@ -8,6 +8,9 @@ import zio.direct.*
 
 import scala.collection.mutable
 
+@SuppressWarnings(
+  Array("org.wartremover.warts.MutableDataStructures", "org.wartremover.warts.Throw")
+)
 class CliArgumentParser {
 
   def parse(): ZIO[ZIOAppArgs, DomainError, CliArguments] = {
@@ -40,28 +43,28 @@ class CliArgumentParser {
               protocolValue match {
                 case Some(p) => protocol = Some(p)
                 case None =>
-                  throw new ParsingError(
+                  throw ParsingError(
                     s"Invalid option: ${CliOptions.Protocol.cliName}. Expected 'http' or 'https'"
                   )
               }
             }
 
             case _ =>
-              throw new ParsingError(s"Invalid option specified: '$optionName'")
+              throw ParsingError(s"Invalid option specified: '$optionName'")
           }
         }
 
         if (protocol.isEmpty) {
-          throw new ParsingError(s"Option '${CliOptions.Protocol.cliName}' is required ")
+          throw ParsingError(s"Option '${CliOptions.Protocol.cliName}' is required ")
         }
 
         CliArguments(
           isUseInMemoryDatabase = useInMemoryDb,
           isPopulateTestData = populateData,
-          protocol = protocol.get
+          protocol = protocol.getOrElse(HTTP)
         )
       }
-      .mapError(error => DomainError(cause = error.some))
+      .mapError(error => DomainError(cause = error))
   }
 
   private enum CliOptions(val cliName: String) {

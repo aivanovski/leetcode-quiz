@@ -1,7 +1,9 @@
 package com.github.ai.leetcodequiz.client
 
+import com.github.ai.leetcodequiz.api.response.PostSubmissionResponse
 import com.github.ai.leetcodequiz.client.ApiClientMain.getArgs
 import com.github.ai.leetcodequiz.client.utils.Printer
+import com.google.gson.reflect.TypeToken
 import zio.*
 import zio.direct.*
 import zio.http.*
@@ -12,8 +14,11 @@ object ApiClientMain extends ZIOAppDefault {
     """
       |Commands:
       |
-      |questions                                             Get list of questions
-      |help                                                  Print help
+      |problems                                  Get list of problems
+      |problem ID                                Get problem by ID
+      |questionnaires                            Get list of questionnaires
+      |answer QUESTIONNAIRE_ID                   Send answer to questionnaire with QUESTIONNAIRE_ID
+      |help                                      Print help
       |""".stripMargin
 
   class InvalidCliArgumentException(message: String) extends Exception(message)
@@ -56,12 +61,42 @@ object ApiClientMain extends ZIOAppDefault {
     }
 
     val response = arguments match {
-      case s"questions" => api.getQuestions().run
+      case s"problems" => api.getProblems().run
+      case s"problem $id" => api.getProblem(id).run
+      case s"questionnaire $id" => api.getQuestionnaire(id).run
+      case s"questionnaires" => api.getQuestionnaires().run
+      case s"answer $questionnaireId" => answer(api, questionnaireId).run
       case _ => ZIO.fail(InvalidCliArgumentException(s"Illegal arguments: $arguments")).run
     }
 
     printer.print(response).run
 
     ExitCode.success
+  }
+
+  private def answer(
+    api: ApiClient,
+    questionnareId: String
+  ): ApiResponse = defer {
+    val questionId = api
+      .getQuestionnaire(questionnareId)
+      .flatMap(response => response.body.asString)
+      .flatMap { content =>
+        ZIO.attempt(
+          api.gson.fromJson(content, TypeToken.get(classOf[PostSubmissionResponse]))
+        )
+      }
+      .map(response => response.questionnaire().nextQuestions().getFirst().id())
+      .run
+
+    ZIO.logInfo(s"id=$questionnareId, questionId=$questionId").run
+
+    api
+      .postAnswer(
+        questionnaireId = questionnareId,
+        questionId = questionId,
+        answer = 1
+      )
+      .run
   }
 }

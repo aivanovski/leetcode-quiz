@@ -16,7 +16,7 @@ extension (str: String) {
       str
         .fromJson[T](using decoder)
         .left
-        .map(error => new DomainError(message = error.some))
+        .map(DomainError(_))
     )
   }
 }

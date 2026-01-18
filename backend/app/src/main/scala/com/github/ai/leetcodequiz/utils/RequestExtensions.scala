@@ -1,11 +1,9 @@
 package com.github.ai.leetcodequiz.utils
 
 import com.github.ai.leetcodequiz.entity.exception.DomainError
-import zio.IO
-import zio.ZIO
 import zio.http.Request
-
-import java.util.UUID
+import zio.*
+import zio.direct.*
 
 extension (request: Request) {
   def getLastUrlParameter(): ZIO[Any, DomainError, String] = {
@@ -19,19 +17,18 @@ extension (request: Request) {
     if (parameter.nonEmpty) {
       ZIO.succeed(parameter)
     } else {
-      ZIO.fail(new DomainError(message = Some("Invalid id parameter")))
+      ZIO.fail(DomainError(message = "Invalid id parameter"))
     }
   }
 }
 
-def parseUidFromUrl(request: Request): IO[DomainError, UUID] = {
-  for {
-    groupUidStr <- request.getLastUrlParameter()
-    groupUid <- groupUidStr.parseUid()
-  } yield groupUid
-}
+def parseIdFromUrl(request: Request): IO[DomainError, Long] = defer {
+  val lastParam = request.getLastUrlParameter().run
 
-def parsePasswordParam(request: Request): IO[DomainError, String] = {
-  val password = request.url.queryParamOrElse("password", "")
-  ZIO.succeed(password)
+  val id = ZIO
+    .attempt(lastParam.toLong)
+    .mapError(DomainError(_))
+    .run
+
+  id
 }

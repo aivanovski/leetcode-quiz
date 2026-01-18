@@ -1,49 +1,76 @@
 package com.github.ai.leetcodequiz
 
-import com.github.ai.leetcodequiz.data.JsonSerializer
-import com.github.ai.leetcodequiz.data.db.dao.{QuestionSyncEntityDao, UserEntityDao}
-import com.github.ai.leetcodequiz.data.db.repository.QuestionSyncRepository
+import com.github.ai.leetcodequiz.data.doobie.dao.{
+  DataSyncEntityDao,
+  ProblemEntityDao,
+  ProblemHintEntityDao,
+  QuestionEntityDao,
+  QuestionnaireEntityDao,
+  SubmissionEntityDao
+}
+import com.github.ai.leetcodequiz.data.doobie.repository.{
+  DataSyncRepository,
+  ProblemRepository,
+  QuestionRepository,
+  QuestionnaireRepository,
+  SubmissionRepository
+}
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
+import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser}
+import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob}
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
-  SyncQuestionsUseCase
+  CreateNewQuestionnaireUseCase,
+  SubmitQuestionAnswerUseCase
 }
-import com.github.ai.leetcodequiz.domain.{
-  AccessResolverService,
-  PasswordService,
-  ScheduledJobService,
-  ScheduledJobServiceImpl,
-  StartupService
+import com.github.ai.leetcodequiz.domain.{PasswordService, ScheduledJobService, StartupService}
+import com.github.ai.leetcodequiz.presentation.controllers.{
+  ProblemController,
+  QuestionController,
+  QuestionnaireController
 }
-import com.github.ai.leetcodequiz.presentation.controllers.QuestionController
 import zio.{ZIO, ZLayer}
 
 object Layers {
 
   // Dao's
-  val userDao = ZLayer.fromFunction(UserEntityDao(_))
-  val questionSyncDao = ZLayer.fromFunction(QuestionSyncEntityDao(_))
+  val dataSyncDao = ZLayer.fromFunction(DataSyncEntityDao(_))
+  val problemDao = ZLayer.fromFunction(ProblemEntityDao(_))
+  val problemHintDao = ZLayer.fromFunction(ProblemHintEntityDao(_))
+  val questionDao = ZLayer.fromFunction(QuestionEntityDao(_))
+  val questionnaireDao = ZLayer.fromFunction(QuestionnaireEntityDao(_))
+  val submissionDao = ZLayer.fromFunction(SubmissionEntityDao(_))
 
   // Repositories
-  val questionSyncRepository = ZLayer.fromFunction(QuestionSyncRepository(_))
+  val dataSyncRepository = ZLayer.fromFunction(DataSyncRepository(_))
+  val problemRepository = ZLayer.fromFunction(ProblemRepository(_, _))
+  val questionRepository = ZLayer.fromFunction(QuestionRepository(_))
+  val questionnaireRepository = ZLayer.fromFunction(QuestionnaireRepository(_))
+  val submissionRepository = ZLayer.fromFunction(SubmissionRepository(_))
 
   // Services
   val passwordService = ZLayer.succeed(PasswordService())
-  val accessResolverService = ZLayer.fromFunction(AccessResolverService(_))
   val startupService = ZLayer.succeed(StartupService())
-  val scheduledJobService: ZLayer[SyncQuestionsUseCase, Nothing, ScheduledJobService] =
-    ZLayer.fromFunction(ScheduledJobServiceImpl(_))
+  val scheduledJobService = ZLayer.succeed(ScheduledJobService())
+
+  // Scheduled jobs
+  val syncProblemsJob = ZLayer.fromFunction(SyncProblemsJob(_, _, _, _, _))
+  val syncQuestionsJob = ZLayer.fromFunction(SyncQuestionsJob(_, _, _, _, _))
 
   // Use cases
   val cloneGithubRepositoryUseCase = ZLayer.fromFunction(CloneGithubRepositoryUseCase(_))
-  val syncQuestionsUseCase = ZLayer.fromFunction(SyncQuestionsUseCase(_, _, _))
+  val createNewQuestionnaireUseCase = ZLayer.fromFunction(CreateNewQuestionnaireUseCase(_, _))
+  val submitQuestionAnswerUseCase = ZLayer.fromFunction(SubmitQuestionAnswerUseCase(_, _, _))
 
   // Response use cases
 
   // Controllers
-  val currencyController = ZLayer.fromFunction(QuestionController(_))
+  val problemController = ZLayer.fromFunction(ProblemController(_, _))
+  val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
+  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _))
 
   // Other
   val jsonSerialized = ZLayer.succeed(JsonSerializer())
+  val problemParser = ZLayer.succeed(ProblemParser())
   val fileSystemProvider = ZLayer.succeed[FileSystemProvider](FileSystemProviderImpl())
 }

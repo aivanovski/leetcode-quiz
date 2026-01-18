@@ -1,32 +1,25 @@
 package com.github.ai.leetcodequiz.domain
 
-import com.github.ai.leetcodequiz.data.file.FileSystemProvider
-import com.github.ai.leetcodequiz.domain.usecases.{CloneGithubRepositoryUseCase, SyncQuestionsUseCase}
-import com.github.ai.leetcodequiz.entity.RelativePath
-import com.github.ai.leetcodequiz.entity.exception.DomainError
+import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob}
 import zio.*
 import zio.direct.{defer, run}
 
-trait ScheduledJobService {
-  def startScheduledJobs(): IO[DomainError, Unit]
-}
+class ScheduledJobService {
 
-class ScheduledJobServiceImpl(
-  private val syncQuestionsUseCase: SyncQuestionsUseCase
-) extends ScheduledJobService {
-
-  private def syncQuestionsJob(): IO[DomainError, Unit] = defer {
-    ZIO.logInfo("Start sync questions job.").run
-    syncQuestionsUseCase.syncQuestions().run
-    ZIO.logInfo("Sync questions job finished.").run
-
-    ()
-  }
-
-  override def startScheduledJobs(): IO[DomainError, Unit] = defer {
+  def startScheduledJobs() = defer {
     // Schedule the job to run at specific interval
-    syncQuestionsJob()
-      .repeat(Schedule.fixed(1.hour))
+    val syncProblemsJob = ZIO.service[SyncProblemsJob].run
+    val syncQuestionsJob = ZIO.service[SyncQuestionsJob].run
+
+    syncProblemsJob
+      .run()
+      .repeat(Schedule.fixed(syncProblemsJob.interval))
+      .forkDaemon
+      .run
+
+    syncQuestionsJob
+      .run()
+      .repeat(Schedule.fixed(syncQuestionsJob.interval))
       .forkDaemon
       .run
 

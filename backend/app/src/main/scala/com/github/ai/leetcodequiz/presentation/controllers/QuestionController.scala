@@ -1,37 +1,51 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.QuestionDto
-import com.github.ai.leetcodequiz.api.response.GetQuestionsResponse
-import com.github.ai.leetcodequiz.data.JsonSerializer
-import com.github.ai.leetcodequiz.utils.toJavaList
+import com.github.ai.leetcodequiz.api.QuestionItemDto
+import com.github.ai.leetcodequiz.api.response.GetHintsResponse
+import com.github.ai.leetcodequiz.data.doobie.model.QuestionEntity
+import com.github.ai.leetcodequiz.data.doobie.repository.{ProblemRepository, QuestionRepository}
+import com.github.ai.leetcodequiz.data.json.JsonSerializer
+import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.entity.exception.DomainError
+import com.github.ai.leetcodequiz.utils.toJavaList
 import zio.*
 import zio.direct.*
 import zio.http.Response
 
 class QuestionController(
+  private val problemRepository: ProblemRepository,
+  private val questionRepository: QuestionRepository,
   private val jsonSerializer: JsonSerializer
 ) {
-  def getQuestions(): IO[DomainError, Response] =
-    defer {
-      Response.json(jsonSerializer.serialize(createResponse()))
+
+  def getHints(): IO[DomainError, Response] = defer {
+    val questions = questionRepository.getAll().run
+    val problems = problemRepository.getAll().run
+
+    val problemMap = problems.map(problem => (problem.id, problem)).toMap
+
+    val questionsAndProblems = questions.flatMap { question =>
+      problemMap
+        .get(question.problemId)
+        .map(p => (question, p))
     }
 
-  private def createResponse(): GetQuestionsResponse = {
-    GetQuestionsResponse(
-      questions = List(
-        QuestionDto(
-          id = 1,
-          title = "Question N1",
-          content = "Some content",
-          hints = List("hint", "hint 2").toJavaList(),
-          likes = 1,
-          dislikes = 2,
-          categoryTitle = "",
-          difficulty = "",
-          url = "http://test.com"
-        )
-      ).toJavaList()
+    Response.json(jsonSerializer.serialize(createResponse(questionsAndProblems)))
+  }
+
+  private def createResponse(data: List[(QuestionEntity, Problem)]): GetHintsResponse = {
+    GetHintsResponse(
+      data
+        .map { (question, problem) =>
+          QuestionItemDto(
+            id = question.uid.toString,
+            problemId = question.problemId.toString.toInt,
+            problemTitle = problem.title,
+            question = question.question,
+            complexity = question.complexity
+          )
+        }
+        .toJavaList()
     )
   }
 }

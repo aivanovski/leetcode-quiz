@@ -9,17 +9,17 @@ import org.eclipse.jgit.api.Git
 import zio.*
 import zio.direct.*
 
-import java.util.UUID
-
 class CloneGithubRepositoryUseCase(
   private val fileSystemProvider: FileSystemProvider
 ) {
 
-  def cloneRepository(repositoryUrl: String): IO[DomainError, RelativePath] = defer {
-    val destinationDirName = UUID.randomUUID().toString()
-    val destination = fileSystemProvider.getDirPath(RelativePath(s"github/$destinationDirName")).run
+  def cloneRepository(
+    repositoryUrl: String,
+    destinationDirPath: RelativePath
+  ): IO[DomainError, RelativePath] = defer {
+    val destination = fileSystemProvider.getDirPath(destinationDirPath).run
 
-    ZIO.logInfo(s"Cloning $repositoryUrl int ${destination.relativePath}").run
+    ZIO.logInfo(s"Cloning $repositoryUrl into: ${destination.relativePath}").run
 
     ZIO
       .attempt {

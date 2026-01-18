@@ -3,9 +3,12 @@ package com.github.ai.leetcodequiz
 import com.github.ai.leetcodequiz.domain.{CliArgumentParser, ScheduledJobService, StartupService}
 import com.github.ai.leetcodequiz.entity.CliArguments
 import com.github.ai.leetcodequiz.entity.HttpProtocol.{HTTP, HTTPS}
-import com.github.ai.leetcodequiz.presentation.routes.QuestionRoutes
-import io.getquill.SnakeCase
-import io.getquill.jdbczio.Quill
+import com.github.ai.leetcodequiz.presentation.routes.{
+  ProblemRoutes,
+  QuestionRoutes,
+  QuestionnaireRoutes
+}
+import com.github.ai.leetcodequiz.data.doobie.DoobieTransactor
 import zio.*
 import zio.http.*
 import zio.logging.LogFormat
@@ -14,7 +17,9 @@ import zio.direct.*
 
 object Main extends ZIOAppDefault {
 
-  private val routes = QuestionRoutes.routes()
+  private val routes = ProblemRoutes.routes()
+    ++ QuestionRoutes.routes()
+    ++ QuestionnaireRoutes.routes()
 
   override val bootstrap: ZLayer[Any, Nothing, Unit] = {
     Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogFormat.colored)
@@ -61,45 +66,45 @@ object Main extends ZIOAppDefault {
 
         // Use-Cases
         Layers.cloneGithubRepositoryUseCase,
-        Layers.syncQuestionsUseCase,
-
-        // Response assemblers use cases
-//        Layers.assembleGroupResponseUseCase,
-//        Layers.assembleGroupsResponseUseCase,
-//        Layers.assembleExpenseUseCase,
+        Layers.createNewQuestionnaireUseCase,
+        Layers.submitQuestionAnswerUseCase,
 
         // Controllers
-//        Layers.memberController,
-//        Layers.groupController,
-//        Layers.expenseController,
-        Layers.currencyController,
+        Layers.problemController,
+        Layers.questionController,
+        Layers.questionnaireController,
+
+        // Scheduled jobs
+        Layers.syncProblemsJob,
+        Layers.syncQuestionsJob,
 
         // Services
         Layers.passwordService,
-        Layers.accessResolverService,
         Layers.startupService,
         Layers.scheduledJobService,
 
         // Repositories
-        Layers.questionSyncRepository,
-//        Layers.groupRepository,
-//        Layers.currencyRepository,
+        Layers.dataSyncRepository,
+        Layers.problemRepository,
+        Layers.questionRepository,
+        Layers.questionnaireRepository,
+        Layers.submissionRepository,
 
         // Dao
-        Layers.userDao,
-        Layers.questionSyncDao,
+        Layers.dataSyncDao,
+        Layers.problemDao,
+        Layers.problemHintDao,
+        Layers.questionDao,
+        Layers.questionnaireDao,
+        Layers.submissionDao,
 
         // Others
         Layers.fileSystemProvider,
         Layers.jsonSerialized,
+        Layers.problemParser,
         Server.live,
         ZLayer.succeed(serverConfig),
-        Quill.H2.fromNamingStrategy(SnakeCase),
-        if (arguments.isUseInMemoryDatabase) {
-          Quill.DataSource.fromPrefix("test-h2db")
-        } else {
-          Quill.DataSource.fromPrefix("h2db")
-        }
+        DoobieTransactor.layer("db")
       )
     } yield ()
   }

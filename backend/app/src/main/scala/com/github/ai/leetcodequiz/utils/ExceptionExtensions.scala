@@ -12,9 +12,8 @@ extension (exception: Throwable)
   }
 
 extension (exception: Throwable)
-  def toDomainError(): DomainError = {
-    DomainError(
+  def toDomainError(): DomainError =
+    new DomainError(
       message = exception.getMessage.some,
       cause = exception.some
     )
-  }
