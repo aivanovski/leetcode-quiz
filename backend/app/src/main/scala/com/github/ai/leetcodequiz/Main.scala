@@ -12,9 +12,11 @@ import com.github.ai.leetcodequiz.data.db.DoobieTransactor
 import com.github.ai.leetcodequiz.utils.RequestLogger
 import zio.*
 import zio.http.*
-import zio.logging.LogFormat
+import zio.logging.{LogColor, LogFormat, LoggerNameExtractor}
 import zio.logging.backend.SLF4J
 import zio.direct.*
+
+import java.time.format.DateTimeFormatter
 
 object Main extends ZIOAppDefault {
 
@@ -25,7 +27,16 @@ object Main extends ZIOAppDefault {
       @@ RequestLogger.requestLogger
 
   override val bootstrap: ZLayer[Any, Nothing, Unit] = {
-    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogFormat.colored)
+    val logFormat: LogFormat =
+      LogFormat
+        .timestamp(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssAZ"))
+        .highlight(_ => LogColor.BLUE)
+        |-| LogFormat.bracketStart + LogFormat.loggerName(
+          LoggerNameExtractor.trace
+        ) + LogFormat.bracketEnd |-|
+        LogFormat.fiberId |-| LogFormat.level.highlight |-| LogFormat.line.highlight
+
+    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(logFormat)
   }
 
   private def application() = defer {

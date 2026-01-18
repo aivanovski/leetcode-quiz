@@ -11,7 +11,7 @@
         <file>app-data/logs/leetcodequiz.log</file>
         <append>true</append>
         <encoder class="com.github.ai.leetcodequiz.logging.AnsiStrippingEncoder">
-            <pattern>%logger %msg%n</pattern>
+            <pattern>%msg%n</pattern>
         </encoder>
     </appender>
 
