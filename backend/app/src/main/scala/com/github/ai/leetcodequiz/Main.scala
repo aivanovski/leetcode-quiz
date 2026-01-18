@@ -9,6 +9,7 @@ import com.github.ai.leetcodequiz.presentation.routes.{
   QuestionnaireRoutes
 }
 import com.github.ai.leetcodequiz.data.db.DoobieTransactor
+import com.github.ai.leetcodequiz.utils.RequestLogger
 import zio.*
 import zio.http.*
 import zio.logging.LogFormat
@@ -17,9 +18,11 @@ import zio.direct.*
 
 object Main extends ZIOAppDefault {
 
-  private val routes = ProblemRoutes.routes()
-    ++ QuestionRoutes.routes()
-    ++ QuestionnaireRoutes.routes()
+  private val routes =
+    (ProblemRoutes.routes()
+      ++ QuestionRoutes.routes()
+      ++ QuestionnaireRoutes.routes())
+      @@ RequestLogger.requestLogger
 
   override val bootstrap: ZLayer[Any, Nothing, Unit] = {
     Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogFormat.colored)
