@@ -9,20 +9,34 @@ import com.github.ai.leetcodequiz.presentation.routes.{
   QuestionnaireRoutes
 }
 import com.github.ai.leetcodequiz.data.db.DoobieTransactor
+import com.github.ai.leetcodequiz.utils.RequestLogger
 import zio.*
 import zio.http.*
-import zio.logging.LogFormat
+import zio.logging.{LogColor, LogFormat, LoggerNameExtractor}
 import zio.logging.backend.SLF4J
 import zio.direct.*
 
+import java.time.format.DateTimeFormatter
+
 object Main extends ZIOAppDefault {
 
-  private val routes = ProblemRoutes.routes()
-    ++ QuestionRoutes.routes()
-    ++ QuestionnaireRoutes.routes()
+  private val routes =
+    (ProblemRoutes.routes()
+      ++ QuestionRoutes.routes()
+      ++ QuestionnaireRoutes.routes())
+      @@ RequestLogger.requestLogger
 
   override val bootstrap: ZLayer[Any, Nothing, Unit] = {
-    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogFormat.colored)
+    val logFormat: LogFormat =
+      LogFormat
+        .timestamp(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssAZ"))
+        .highlight(_ => LogColor.BLUE)
+        |-| LogFormat.bracketStart + LogFormat.loggerName(
+          LoggerNameExtractor.trace
+        ) + LogFormat.bracketEnd |-|
+        LogFormat.fiberId |-| LogFormat.level.highlight |-| LogFormat.line.highlight
+
+    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(logFormat)
   }
 
   private def application() = defer {
@@ -50,19 +64,20 @@ object Main extends ZIOAppDefault {
     }
   }
 
-  override def run: ZIO[ZIOAppArgs, Throwable, Unit] = {
-    for {
-      arguments <- CliArgumentParser().parse()
-      _ <- ZIO.logInfo(s"Starting server on port ${arguments.getPort()}")
-      _ <- ZIO.logInfo(s"   isUseInMemoryDatabase=${arguments.isUseInMemoryDatabase}")
-      _ <- ZIO.logInfo(s"   isPopulateTestData=${arguments.isPopulateTestData}")
-      _ <- ZIO.logInfo(s"   protocol=${arguments.protocol}")
+  override def run: ZIO[ZIOAppArgs, Throwable, Unit] = defer {
+    val arguments = CliArgumentParser().parse().run
 
-      serverConfig <- createServerConfig(arguments)
+    ZIO.logInfo(s"Starting server on port ${arguments.getPort()}").run
+    ZIO.logInfo(s"   isUseInMemoryDatabase=${arguments.isUseInMemoryDatabase}").run
+    ZIO.logInfo(s"   isPopulateTestData=${arguments.isPopulateTestData}").run
+    ZIO.logInfo(s"   protocol=${arguments.protocol}").run
 
-      _ <- application().provide(
+    val serverConfig = createServerConfig(arguments).run
+
+    application()
+      .provide(
         // Application arguments
-        ZLayer.succeed(arguments),
+//        ZLayer.succeed(arguments),
 
         // Use-Cases
         Layers.cloneGithubRepositoryUseCase,
@@ -79,7 +94,6 @@ object Main extends ZIOAppDefault {
         Layers.syncQuestionsJob,
 
         // Services
-        Layers.passwordService,
         Layers.startupService,
         Layers.scheduledJobService,
 
@@ -106,6 +120,7 @@ object Main extends ZIOAppDefault {
         ZLayer.succeed(serverConfig),
         DoobieTransactor.layer("db")
       )
-    } yield ()
+      .run
+    ()
   }
 }
