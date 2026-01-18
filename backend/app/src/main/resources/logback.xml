@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>app-data/logs/leetcodequiz.log</file>
+        <append>true</append>
+        <encoder class="com.github.ai.leetcodequiz.logging.AnsiStrippingEncoder">
+            <pattern>%logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <logger name="io.netty" level="INFO"/>
+    <logger name="com.zaxxer" level="INFO"/>
+    <logger name="io.getquill" level="INFO"/>
+    <logger name="org.eclipse.jgit" level="INFO"/>
+</configuration>
