@@ -22,6 +22,7 @@ object DoobieTransactor {
   private def loadConfig(prefix: String): Task[DatabaseConfig] = ZIO.attempt {
     val config = ConfigFactory.load().getConfig(prefix)
     val dataSource = config.getConfig("dataSource")
+    val hikari = config.getConfig("hikari")
 
     DatabaseConfig(
       config = HikariConfig(
@@ -29,7 +30,9 @@ object DoobieTransactor {
         username = Some(dataSource.getString("user")),
         password = Some(dataSource.getString("password")),
         poolName = Some(s"$prefix-hikari-pool"),
-        driverClassName = Some(config.getString("driverClassName"))
+        driverClassName = Some(config.getString("driverClassName")),
+        maximumPoolSize = hikari.getInt("maximumPoolSize"),
+        minimumIdle = hikari.getInt("minimumIdle")
       )
     )
   }
