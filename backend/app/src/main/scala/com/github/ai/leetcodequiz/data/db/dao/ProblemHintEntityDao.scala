@@ -12,6 +12,16 @@ class ProblemHintEntityDao(
   private val transactor: Transactor[Task]
 ) {
 
+  def getAll(): IO[DatabaseError, List[ProblemHintEntity]] = {
+    sql"""
+          SELECT id, problem_id, hint
+          FROM problem_hints
+       """
+      .query[ProblemHintEntity]
+      .to[List]
+      .execute(transactor)
+  }
+
   def getByProblemId(problemId: ProblemId): IO[DatabaseError, List[ProblemHintEntity]] = {
     sql"""
         SELECT id, problem_id, hint
