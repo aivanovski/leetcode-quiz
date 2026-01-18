@@ -2,8 +2,8 @@ package com.github.ai.leetcodequiz.presentation.controllers
 
 import com.github.ai.leetcodequiz.api.QuestionItemDto
 import com.github.ai.leetcodequiz.api.response.GetHintsResponse
-import com.github.ai.leetcodequiz.data.doobie.model.QuestionEntity
-import com.github.ai.leetcodequiz.data.doobie.repository.{ProblemRepository, QuestionRepository}
+import com.github.ai.leetcodequiz.data.db.model.QuestionEntity
+import com.github.ai.leetcodequiz.data.db.repository.{ProblemRepository, QuestionRepository}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.entity.exception.DomainError

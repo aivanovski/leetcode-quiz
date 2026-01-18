@@ -1,7 +1,7 @@
-package com.github.ai.leetcodequiz.data.doobie.repository
+package com.github.ai.leetcodequiz.data.db.repository
 
-import com.github.ai.leetcodequiz.data.doobie.dao.QuestionnaireEntityDao
-import com.github.ai.leetcodequiz.data.doobie.model.{QuestionnaireEntity, QuestionnaireUid}
+import com.github.ai.leetcodequiz.data.db.dao.QuestionnaireEntityDao
+import com.github.ai.leetcodequiz.data.db.model.{QuestionnaireEntity, QuestionnaireUid}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.ZIO
 

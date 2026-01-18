@@ -1,7 +1,7 @@
-package com.github.ai.leetcodequiz.data.doobie.repository
+package com.github.ai.leetcodequiz.data.db.repository
 
-import com.github.ai.leetcodequiz.data.doobie.dao.QuestionEntityDao
-import com.github.ai.leetcodequiz.data.doobie.model.{QuestionEntity, QuestionUid}
+import com.github.ai.leetcodequiz.data.db.dao.QuestionEntityDao
+import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid}
 
 class QuestionRepository(
   private val dao: QuestionEntityDao

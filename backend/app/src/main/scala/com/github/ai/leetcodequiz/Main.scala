@@ -8,7 +8,7 @@ import com.github.ai.leetcodequiz.presentation.routes.{
   QuestionRoutes,
   QuestionnaireRoutes
 }
-import com.github.ai.leetcodequiz.data.doobie.DoobieTransactor
+import com.github.ai.leetcodequiz.data.db.DoobieTransactor
 import zio.*
 import zio.http.*
 import zio.logging.LogFormat

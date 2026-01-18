@@ -1,13 +1,13 @@
 package com.github.ai.leetcodequiz.domain.usecases
 
-import com.github.ai.leetcodequiz.data.doobie.model.{
+import com.github.ai.leetcodequiz.data.db.model.{
   QuestionUid,
   QuestionnaireEntity,
   QuestionnaireUid,
   SubmissionEntity,
   SubmissionUid
 }
-import com.github.ai.leetcodequiz.data.doobie.repository.{
+import com.github.ai.leetcodequiz.data.db.repository.{
   QuestionRepository,
   QuestionnaireRepository,
   SubmissionRepository

@@ -1,11 +1,7 @@
 package com.github.ai.leetcodequiz.utils
 
 import com.github.ai.leetcodequiz.api.{QuestionItemDto, QuestionnaireItemDto}
-import com.github.ai.leetcodequiz.data.doobie.model.{
-  QuestionEntity,
-  QuestionUid,
-  QuestionnaireEntity
-}
+import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, QuestionnaireEntity}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
 import zio.direct.*

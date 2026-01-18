@@ -1,15 +1,12 @@
 package com.github.ai.leetcodequiz.domain.usecases
 
-import com.github.ai.leetcodequiz.data.doobie.model.{
+import com.github.ai.leetcodequiz.data.db.model.{
   QuestionEntity,
   QuestionUid,
   QuestionnaireEntity,
   QuestionnaireUid
 }
-import com.github.ai.leetcodequiz.data.doobie.repository.{
-  QuestionRepository,
-  QuestionnaireRepository
-}
+import com.github.ai.leetcodequiz.data.db.repository.{QuestionRepository, QuestionnaireRepository}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 
 import java.util.{Random, UUID}

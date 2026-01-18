@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.domain.jobs
 
-import com.github.ai.leetcodequiz.data.doobie.model.{DataSyncEntity, ProblemId, SyncType, SyncUid}
-import com.github.ai.leetcodequiz.data.doobie.repository.{DataSyncRepository, ProblemRepository}
+import com.github.ai.leetcodequiz.data.db.model.{DataSyncEntity, ProblemId, SyncType, SyncUid}
+import com.github.ai.leetcodequiz.data.db.repository.{DataSyncRepository, ProblemRepository}
 import com.github.ai.leetcodequiz.data.file.FileSystemProvider
 import com.github.ai.leetcodequiz.data.json.ProblemParser
 import com.github.ai.leetcodequiz.domain.usecases.CloneGithubRepositoryUseCase

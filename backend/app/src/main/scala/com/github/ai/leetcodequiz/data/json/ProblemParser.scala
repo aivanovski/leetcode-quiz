@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz.data.json
 
-import com.github.ai.leetcodequiz.data.doobie.model.ProblemId
+import com.github.ai.leetcodequiz.data.db.model.ProblemId
 import com.github.ai.leetcodequiz.entity.{Difficulty, Problem}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.parseJson

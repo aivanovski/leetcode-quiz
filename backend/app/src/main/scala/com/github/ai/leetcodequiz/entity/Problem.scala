@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz.entity
 
-import com.github.ai.leetcodequiz.data.doobie.model.ProblemId
+import com.github.ai.leetcodequiz.data.db.model.ProblemId
 
 case class Problem(
   id: ProblemId,
