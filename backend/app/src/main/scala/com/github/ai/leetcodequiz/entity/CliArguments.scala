@@ -3,8 +3,7 @@ package com.github.ai.leetcodequiz.entity
 import com.github.ai.leetcodequiz.entity.HttpProtocol.{HTTP, HTTPS}
 
 case class CliArguments(
-  isUseInMemoryDatabase: Boolean,
-  isPopulateTestData: Boolean,
+  environment: AppEnvironment,
   protocol: HttpProtocol
 ) {
 

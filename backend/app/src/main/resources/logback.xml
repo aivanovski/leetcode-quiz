@@ -10,7 +10,7 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>app-data/logs/leetcodequiz.log</file>
         <append>true</append>
-        <encoder class="com.github.ai.leetcodequiz.logging.AnsiStrippingEncoder">
+        <encoder class="com.github.ai.leetcodequiz.utils.AnsiStrippingEncoder">
             <pattern>%msg%n</pattern>
         </encoder>
     </appender>
