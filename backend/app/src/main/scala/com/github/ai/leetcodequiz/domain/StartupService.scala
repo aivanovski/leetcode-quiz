@@ -14,7 +14,7 @@ class StartupService {
 
       val jobService = ZIO.service[ScheduledJobService].run
       jobService.startScheduledJobs().run
-      
+
       if (appArguments.environment == DEBUG) {
         val setupTestDataUseCase = ZIO.service[SetupTestDataUseCase].run
         setupTestDataUseCase.setupDefaultData().run

@@ -1,15 +1,42 @@
 package com.github.ai.leetcodequiz
 
-import com.github.ai.leetcodequiz.data.db.dao.{DataSyncEntityDao, ProblemEntityDao, ProblemHintEntityDao, QuestionEntityDao, QuestionnaireEntityDao, SubmissionEntityDao, UserEntityDao}
-import com.github.ai.leetcodequiz.data.db.repository.{DataSyncRepository, ProblemRepository, QuestionRepository, QuestionnaireRepository, SubmissionRepository, UserRepository}
+import com.github.ai.leetcodequiz.data.db.dao.{
+  DataSyncEntityDao,
+  ProblemEntityDao,
+  ProblemHintEntityDao,
+  QuestionEntityDao,
+  QuestionnaireEntityDao,
+  SubmissionEntityDao,
+  UserEntityDao
+}
+import com.github.ai.leetcodequiz.data.db.repository.{
+  DataSyncRepository,
+  ProblemRepository,
+  QuestionRepository,
+  QuestionnaireRepository,
+  SubmissionRepository,
+  UserRepository
+}
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
 import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser}
 import com.github.ai.leetcodequiz.domain.authentication.{AccessResolver, JwtTokeService}
 import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob}
-import com.github.ai.leetcodequiz.domain.usecases.{CloneGithubRepositoryUseCase, CreateNewQuestionnaireUseCase, SetupTestDataUseCase, SubmitQuestionAnswerUseCase, ValidateEmailUseCase}
+import com.github.ai.leetcodequiz.domain.usecases.{
+  CloneGithubRepositoryUseCase,
+  CreateNewQuestionnaireUseCase,
+  SetupTestDataUseCase,
+  SubmitQuestionAnswerUseCase,
+  ValidateEmailUseCase
+}
 import com.github.ai.leetcodequiz.domain.{PasswordService, ScheduledJobService, StartupService}
 import com.github.ai.leetcodequiz.entity.JwtData
-import com.github.ai.leetcodequiz.presentation.controllers.{ProblemController, QuestionController, QuestionnaireController, UnasweredQuestionnareController, AuthController}
+import com.github.ai.leetcodequiz.presentation.controllers.{
+  ProblemController,
+  QuestionController,
+  QuestionnaireController,
+  UnasweredQuestionnareController,
+  AuthController
+}
 import zio.{ZIO, ZLayer}
 
 object Layers {

@@ -3,7 +3,13 @@ package com.github.ai.leetcodequiz
 import com.github.ai.leetcodequiz.domain.{CliArgumentParser, ScheduledJobService, StartupService}
 import com.github.ai.leetcodequiz.entity.{CliArguments, JwtData}
 import com.github.ai.leetcodequiz.entity.HttpProtocol.{HTTP, HTTPS}
-import com.github.ai.leetcodequiz.presentation.routes.{ProblemRoutes, QuestionRoutes, QuestionnaireRoutes, UnansweredQuestionnaireRoutes, AuthRoutes}
+import com.github.ai.leetcodequiz.presentation.routes.{
+  ProblemRoutes,
+  QuestionRoutes,
+  QuestionnaireRoutes,
+  UnansweredQuestionnaireRoutes,
+  AuthRoutes
+}
 import com.github.ai.leetcodequiz.data.db.DoobieTransactor
 import com.github.ai.leetcodequiz.utils.RequestLogger
 import zio.*
