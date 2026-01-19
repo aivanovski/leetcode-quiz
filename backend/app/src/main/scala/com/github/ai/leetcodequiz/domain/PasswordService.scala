@@ -1,9 +1,6 @@
 package com.github.ai.leetcodequiz.domain
 
-import com.github.ai.leetcodequiz.entity.exception.DomainError
-import com.github.ai.leetcodequiz.utils.some
 import org.mindrot.jbcrypt.BCrypt
-import zio.*
 
 class PasswordService {
 

@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.domain
 
 import com.github.ai.leetcodequiz.entity.HttpProtocol.HTTP
-import com.github.ai.leetcodequiz.entity.{CliArguments, HttpProtocol}
+import com.github.ai.leetcodequiz.entity.{AppEnvironment, CliArguments, HttpProtocol}
 import com.github.ai.leetcodequiz.entity.exception.{DomainError, ParsingError}
 import zio.*
 import zio.direct.*
@@ -23,7 +23,7 @@ class CliArgumentParser {
   private def parseArguments(args: List[String]): IO[DomainError, CliArguments] = {
     ZIO
       .attempt {
-        var useInMemoryDb = false
+        var environment = AppEnvironment.PROD
         var populateData = false
         var protocol: Option[HttpProtocol] = None
 
@@ -33,8 +33,7 @@ class CliArgumentParser {
         while (queue.nonEmpty) {
           val optionName = queue.removeHead()
           optionName match {
-            case CliOptions.InMemoryDb.cliName => useInMemoryDb = true
-            case CliOptions.PopulateData.cliName => populateData = true
+            case CliOptions.Debug.cliName => environment = AppEnvironment.DEBUG
             case CliOptions.Protocol.cliName => {
               val protocolValue = queue
                 .removeHeadOption()
@@ -59,8 +58,7 @@ class CliArgumentParser {
         }
 
         CliArguments(
-          isUseInMemoryDatabase = useInMemoryDb,
-          isPopulateTestData = populateData,
+          environment = environment,
           protocol = protocol.getOrElse(HTTP)
         )
       }
@@ -68,8 +66,7 @@ class CliArgumentParser {
   }
 
   private enum CliOptions(val cliName: String) {
-    case InMemoryDb extends CliOptions("--in-memory-db")
-    case PopulateData extends CliOptions("--populate-data")
+    case Debug extends CliOptions("--debug")
     case Protocol extends CliOptions("--protocol")
   }
 }

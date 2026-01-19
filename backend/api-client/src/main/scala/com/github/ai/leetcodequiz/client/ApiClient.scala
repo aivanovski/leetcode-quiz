@@ -1,10 +1,11 @@
 package com.github.ai.leetcodequiz.client
 
-import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
+import com.github.ai.leetcodequiz.api.request.{LoginRequest, PostSubmissionRequest, SignupRequest}
+import com.github.ai.leetcodequiz.api.response.{LoginResponse, PostSubmissionResponse}
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import zio.*
 import zio.http.*
-import zio.direct.*
 
 type ApiResponse = ZIO[Scope, Throwable, Response]
 
@@ -12,42 +13,131 @@ class ApiClient(
   private val client: Client
 ) {
 
-  val gson = GsonBuilder().setPrettyPrinting().create()
-  private val DefaultPassword = "abc123"
+  private val gson = GsonBuilder().setPrettyPrinting().create()
   private val baseUrl = "https://127.0.0.1:8443"
 
-  def getProblems(): ApiResponse =
+  def signup(name: String, email: String, password: String): ApiResponse =
     client.request(
-      Request.get(
-        path = s"$baseUrl/api/problem"
+      Request.post(
+        path = s"$baseUrl/api/signup",
+        body = Body.fromString(
+          gson.toJson(
+            SignupRequest(
+              name = name,
+              email = email,
+              password = password
+            )
+          )
+        )
       )
     )
 
-  def getProblem(id: String): ApiResponse =
+  def getAuthToken(
+    email: String = DefaultCredentials.DefaultEmail,
+    password: String = DefaultCredentials.DefaultPassword
+  ): ZIO[Scope, Throwable, String] =
+    login(email, password)
+      .flatMap(_.body.asString)
+      .flatMap { json =>
+        ZIO.attempt(gson.fromJson(json, TypeToken.get(classOf[LoginResponse]))).map(_.token())
+      }
+
+  def getFirstQuestionIdFromQuestionnaire(
+    questionnaireId: String,
+    authToken: String
+  ): ZIO[Scope, Throwable, String] =
+    getQuestionnaire(id = questionnaireId, authToken = authToken)
+      .flatMap(_.body.asString)
+      .flatMap { content =>
+        ZIO.attempt(gson.fromJson(content, TypeToken.get(classOf[PostSubmissionResponse])))
+      }
+      .map(response => response.questionnaire().nextQuestions().getFirst().id())
+
+  def login(
+    email: String = DefaultCredentials.DefaultEmail,
+    password: String = DefaultCredentials.DefaultPassword
+  ): ApiResponse =
     client.request(
-      Request.get(
-        path = s"$baseUrl/api/problem/$id"
+      Request.post(
+        path = s"$baseUrl/api/login",
+        body = Body.fromString(createLoginRequest(email = email, password = password))
       )
     )
 
-  def getQuestionnaires(): ApiResponse =
+  def getProblems(
+    authToken: String
+  ): ApiResponse =
     client.request(
-      Request.get(
-        path = s"$baseUrl/api/questionnaire"
+      Request(
+        method = Method.GET,
+        url = URL.decode(s"$baseUrl/api/problem").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken))
       )
     )
 
-  def getQuestionnaire(id: String): ApiResponse =
+  def getProblem(
+    id: String,
+    authToken: String
+  ): ApiResponse =
     client.request(
-      Request.get(
-        path = s"$baseUrl/api/questionnaire/$id"
+      Request(
+        method = Method.GET,
+        url = URL.decode(s"$baseUrl/api/problem/$id").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken))
+      )
+    )
+
+  def getQuestions(
+    authToken: String
+  ): ApiResponse =
+    client.request(
+      Request(
+        method = Method.GET,
+        url = URL.decode(s"$baseUrl/api/question").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken))
+      )
+    )
+
+  def getQuestionnaires(
+    authToken: String
+  ): ApiResponse =
+    client.request(
+      Request(
+        method = Method.GET,
+        url = URL.decode(s"$baseUrl/api/questionnaire").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken))
+      )
+    )
+
+  def getQuestionnaire(
+    id: String,
+    authToken: String
+  ): ApiResponse =
+    client.request(
+      Request(
+        method = Method.GET,
+        url = URL.decode(s"$baseUrl/api/questionnaire/$id").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken))
+      )
+    )
+
+  def getUnanswered(
+    questionnaireId: String,
+    authToken: String
+  ): ApiResponse =
+    client.request(
+      Request(
+        method = Method.GET,
+        url = URL.decode(s"$baseUrl/api/unanswered/$questionnaireId").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken))
       )
     )
 
   def postAnswer(
     questionnaireId: String,
     questionId: String,
-    answer: Int
+    answer: Int,
+    authToken: String
   ): ApiResponse = {
     val body = PostSubmissionRequest(
       questionId = questionId,
@@ -55,14 +145,25 @@ class ApiClient(
     )
 
     client.request(
-      Request.post(
-        path = s"$baseUrl/api/questionnaire/$questionnaireId",
+      Request(
+        method = Method.POST,
+        url = URL.decode(s"$baseUrl/api/questionnaire/$questionnaireId").toOption.get,
+        headers = Headers(Header.Authorization.Bearer(authToken)),
         body = Body.fromString(gson.toJson(body))
       )
     )
   }
-}
 
-object Groups {
-  val TripToDisneyLand = "00000000-0000-0000-0000-b00000000001"
+  private def createLoginRequest(email: String, password: String): String =
+    gson.toJson(
+      LoginRequest(
+        email = email,
+        password = password
+      )
+    )
+
+  object DefaultCredentials {
+    val DefaultPassword = "abc123"
+    val DefaultEmail = "admin@mail.com"
+  }
 }

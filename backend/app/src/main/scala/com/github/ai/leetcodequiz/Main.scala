@@ -1,12 +1,14 @@
 package com.github.ai.leetcodequiz
 
 import com.github.ai.leetcodequiz.domain.{CliArgumentParser, ScheduledJobService, StartupService}
-import com.github.ai.leetcodequiz.entity.CliArguments
+import com.github.ai.leetcodequiz.entity.{CliArguments, JwtData}
 import com.github.ai.leetcodequiz.entity.HttpProtocol.{HTTP, HTTPS}
 import com.github.ai.leetcodequiz.presentation.routes.{
   ProblemRoutes,
   QuestionRoutes,
-  QuestionnaireRoutes
+  QuestionnaireRoutes,
+  UnansweredQuestionnaireRoutes,
+  AuthRoutes
 }
 import com.github.ai.leetcodequiz.data.db.DoobieTransactor
 import com.github.ai.leetcodequiz.utils.RequestLogger
@@ -23,7 +25,9 @@ object Main extends ZIOAppDefault {
   private val routes =
     (ProblemRoutes.routes()
       ++ QuestionRoutes.routes()
-      ++ QuestionnaireRoutes.routes())
+      ++ QuestionnaireRoutes.routes()
+      ++ UnansweredQuestionnaireRoutes.routes()
+      ++ AuthRoutes.routes())
       @@ RequestLogger.requestLogger
 
   override val bootstrap: ZLayer[Any, Nothing, Unit] = {
@@ -68,8 +72,7 @@ object Main extends ZIOAppDefault {
     val arguments = CliArgumentParser().parse().run
 
     ZIO.logInfo(s"Starting server on port ${arguments.getPort()}").run
-    ZIO.logInfo(s"   isUseInMemoryDatabase=${arguments.isUseInMemoryDatabase}").run
-    ZIO.logInfo(s"   isPopulateTestData=${arguments.isPopulateTestData}").run
+    ZIO.logInfo(s"   environment=${arguments.environment}").run
     ZIO.logInfo(s"   protocol=${arguments.protocol}").run
 
     val serverConfig = createServerConfig(arguments).run
@@ -77,17 +80,21 @@ object Main extends ZIOAppDefault {
     application()
       .provide(
         // Application arguments
-//        ZLayer.succeed(arguments),
+        ZLayer.succeed(arguments),
+        ZLayer.succeed(JwtData.DEFAULT),
 
         // Use-Cases
         Layers.cloneGithubRepositoryUseCase,
         Layers.createNewQuestionnaireUseCase,
         Layers.submitQuestionAnswerUseCase,
+        Layers.setupTestDataUseCase,
 
         // Controllers
         Layers.problemController,
         Layers.questionController,
         Layers.questionnaireController,
+        Layers.unasweredQuestionnareController,
+        Layers.userController,
 
         // Scheduled jobs
         Layers.syncProblemsJob,
@@ -96,6 +103,9 @@ object Main extends ZIOAppDefault {
         // Services
         Layers.startupService,
         Layers.scheduledJobService,
+        Layers.passwordService,
+        Layers.jwtTokeService,
+        Layers.accessResolver,
 
         // Repositories
         Layers.dataSyncRepository,
@@ -103,6 +113,7 @@ object Main extends ZIOAppDefault {
         Layers.questionRepository,
         Layers.questionnaireRepository,
         Layers.submissionRepository,
+        Layers.userRepository,
 
         // Dao
         Layers.dataSyncDao,
@@ -111,6 +122,7 @@ object Main extends ZIOAppDefault {
         Layers.questionDao,
         Layers.questionnaireDao,
         Layers.submissionDao,
+        Layers.userDao,
 
         // Others
         Layers.fileSystemProvider,

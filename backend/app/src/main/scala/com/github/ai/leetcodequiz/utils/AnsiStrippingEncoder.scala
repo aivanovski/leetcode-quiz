@@ -1,4 +1,4 @@
-package com.github.ai.leetcodequiz.logging
+package com.github.ai.leetcodequiz.utils
 
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
