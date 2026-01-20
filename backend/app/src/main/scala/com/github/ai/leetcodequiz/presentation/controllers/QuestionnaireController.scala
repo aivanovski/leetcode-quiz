@@ -3,9 +3,8 @@ package com.github.ai.leetcodequiz.presentation.controllers
 import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
 import com.github.ai.leetcodequiz.utils.{
   getLastUrlParameter,
-  parseIdFromUrl,
   parseUid,
-  toJavaList,
+  readBodyAsString,
   toQuestionnaireItemDto
 }
 import com.github.ai.leetcodequiz.api.response.{
@@ -34,7 +33,7 @@ import zio.{IO, ZIO}
 import zio.direct.*
 import zio.http.{Request, Response}
 
-import java.util.{Random, UUID}
+import java.util.Random
 
 class QuestionnaireController(
   private val createQuestionnaireUseCase: CreateNewQuestionnaireUseCase,
@@ -95,11 +94,9 @@ class QuestionnaireController(
   def postSubmission(
     request: Request
   ): IO[DomainError, Response] = defer {
-    val body = jsonSerializer
-      .deserializer(
-        request.body.asString,
-        classOf[PostSubmissionRequest]
-      )
+    val body = request
+      .readBodyAsString()
+      .flatMap { text => jsonSerializer.deserialize[PostSubmissionRequest](text) }
       .run
 
     val questionnaireUid = request
@@ -108,13 +105,13 @@ class QuestionnaireController(
       .map(QuestionnaireUid(_))
       .run
 
-    val questionUid = body.questionId().parseUid().map(QuestionUid(_)).run
+    val questionUid = body.questionId.parseUid().map(QuestionUid(_)).run
 
     val questionnaire = submitAnswerUseCase
       .submitAnswer(
         questionnaireUid = questionnaireUid,
         questionUid = questionUid,
-        answer = body.answer()
+        answer = body.answer
       )
       .run
 
@@ -173,6 +170,6 @@ class QuestionnaireController(
             )
           }
         )
-    } yield GetQuestionnairesResponse(items.toJavaList())
+    } yield GetQuestionnairesResponse(items)
   }
 }

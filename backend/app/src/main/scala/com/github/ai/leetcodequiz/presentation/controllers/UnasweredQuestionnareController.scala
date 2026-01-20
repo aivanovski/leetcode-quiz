@@ -11,7 +11,7 @@ import com.github.ai.leetcodequiz.data.db.repository.{
 }
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.exception.DomainError
-import com.github.ai.leetcodequiz.utils.{getLastUrlParameter, parseUid, toJavaList}
+import com.github.ai.leetcodequiz.utils.{getLastUrlParameter, parseUid}
 import zio.direct.*
 import zio.http.{Request, Response}
 import zio.IO
@@ -63,7 +63,6 @@ class UnasweredQuestionnareController(
             complexity = question.complexity
           )
         }
-        .toJavaList()
     )
   }
 }

@@ -2,10 +2,9 @@ package com.github.ai.leetcodequiz.client
 
 import com.github.ai.leetcodequiz.api.request.{LoginRequest, PostSubmissionRequest, SignupRequest}
 import com.github.ai.leetcodequiz.api.response.{LoginResponse, PostSubmissionResponse}
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 import zio.*
 import zio.http.*
+import zio.json.*
 
 type ApiResponse = ZIO[Scope, Throwable, Response]
 
@@ -13,7 +12,6 @@ class ApiClient(
   private val client: Client
 ) {
 
-  private val gson = GsonBuilder().setPrettyPrinting().create()
   private val baseUrl = "https://127.0.0.1:8443"
 
   def signup(name: String, email: String, password: String): ApiResponse =
@@ -21,13 +19,11 @@ class ApiClient(
       Request.post(
         path = s"$baseUrl/api/signup",
         body = Body.fromString(
-          gson.toJson(
-            SignupRequest(
-              name = name,
-              email = email,
-              password = password
-            )
-          )
+          SignupRequest(
+            name = name,
+            email = email,
+            password = password
+          ).toJson
         )
       )
     )
@@ -39,8 +35,11 @@ class ApiClient(
     login(email, password)
       .flatMap(_.body.asString)
       .flatMap { json =>
-        ZIO.attempt(gson.fromJson(json, TypeToken.get(classOf[LoginResponse]))).map(_.token())
+        ZIO
+          .fromEither(json.fromJson[LoginResponse])
+          .mapError(e => Exception(s"Unable to parse json response: $e"))
       }
+      .map(response => response.token)
 
   def getFirstQuestionIdFromQuestionnaire(
     questionnaireId: String,
@@ -48,10 +47,12 @@ class ApiClient(
   ): ZIO[Scope, Throwable, String] =
     getQuestionnaire(id = questionnaireId, authToken = authToken)
       .flatMap(_.body.asString)
-      .flatMap { content =>
-        ZIO.attempt(gson.fromJson(content, TypeToken.get(classOf[PostSubmissionResponse])))
+      .flatMap { json =>
+        ZIO
+          .fromEither(json.fromJson[PostSubmissionResponse])
+          .mapError(e => Exception(s"Unable to parse json response: $e"))
       }
-      .map(response => response.questionnaire().nextQuestions().getFirst().id())
+      .map(response => response.questionnaire.nextQuestions.collectFirst(_.id).getOrElse(""))
 
   def login(
     email: String = DefaultCredentials.DefaultEmail,
@@ -139,7 +140,7 @@ class ApiClient(
     answer: Int,
     authToken: String
   ): ApiResponse = {
-    val body = PostSubmissionRequest(
+    val requestBody = PostSubmissionRequest(
       questionId = questionId,
       answer = answer
     )
@@ -149,18 +150,16 @@ class ApiClient(
         method = Method.POST,
         url = URL.decode(s"$baseUrl/api/questionnaire/$questionnaireId").toOption.get,
         headers = Headers(Header.Authorization.Bearer(authToken)),
-        body = Body.fromString(gson.toJson(body))
+        body = Body.fromString(requestBody.toJson)
       )
     )
   }
 
   private def createLoginRequest(email: String, password: String): String =
-    gson.toJson(
-      LoginRequest(
-        email = email,
-        password = password
-      )
-    )
+    LoginRequest(
+      email = email,
+      password = password
+    ).toJson
 
   object DefaultCredentials {
     val DefaultPassword = "abc123"

@@ -4,7 +4,6 @@ val zioJsonVersion = "0.6.2"
 val circeVersion = "0.14.10"
 val zioDirect = "1.0.0-RC7"
 val zioHttp = "3.0.1"
-val gsonVersion = "2.11.0"
 val doobieVersion = "1.0.0-RC4"
 val zioInteropCatsVersion = "23.1.0.0"
 
@@ -19,8 +18,7 @@ lazy val api = project
       artifact.name + "." + artifact.extension
     },
     libraryDependencies ++= Seq(
-      "com.google.code.gson" % "gson" % gsonVersion,
-      "org.jetbrains" % "annotations" % "25.0.0"
+      "dev.zio" %% "zio-json" % zioJsonVersion
     )
   )
 
@@ -65,7 +63,6 @@ lazy val app = project
       "dev.zio" %% "zio" % zioVersion,
       "dev.zio" %% "zio-streams" % zioVersion,
       "dev.zio" %% "zio-http" % zioHttp,
-      "dev.zio" %% "zio-json" % zioJsonVersion,
       "dev.zio" %% "zio-direct" % zioDirect,
 
       // Logging
@@ -90,7 +87,10 @@ lazy val app = project
       "org.mindrot" % "jbcrypt" % "0.4",
 
       // CSV file parsing
-      "org.apache.commons" % "commons-csv" % "1.10.0"
+      "org.apache.commons" % "commons-csv" % "1.10.0",
+
+      // Json
+      "dev.zio" %% "zio-json" % zioJsonVersion
     )
   )
 
@@ -103,7 +103,6 @@ lazy val apiClient = project
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
       case x => MergeStrategy.first
     },
-//    wartremoverErrors ++= Warts.unsafe,
     assembly / mainClass := Some("com.github.ai.leetcodequiz.client.ApiClientMain"),
     assembly / assemblyJarName := "leetcode-quiz-api-client.jar",
     libraryDependencies ++= Seq(
@@ -111,4 +110,20 @@ lazy val apiClient = project
       "dev.zio" %% "zio-direct" % zioDirect,
       "dev.zio" %% "zio-http" % zioHttp
     )
+  )
+
+lazy val generateKotlinClasses = taskKey[Unit]("Generate Kotlin API classes")
+
+lazy val codegen = project
+  .in(file("codegen"))
+  .dependsOn(api)
+  .settings(
+    name := "leetcode-quiz-codegen",
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio" % zioVersion,
+      "dev.zio" %% "zio-direct" % zioDirect
+    ),
+    generateKotlinClasses := {
+      (Compile / runMain).toTask(" com.github.ai.leetcodequiz.codegen.TranspilerMain api/src/main/scala ./../android/backend-api/src/main/kotlin").value
+    }
   )

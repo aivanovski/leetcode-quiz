@@ -3,10 +3,10 @@ package com.github.ai.leetcodequiz.utils
 import com.github.ai.leetcodequiz.api.ErrorMessageDto
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.*
-import com.google.gson.GsonBuilder
 
-import java.util.{Base64, Collections, Optional}
+import java.util.Base64
 import zio.http.{Body, Response, Status}
+import zio.json.*
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.annotation.tailrec
@@ -31,15 +31,12 @@ extension (exception: DomainError) {
       message = exception.message.map(_.trim).getOrElse(""),
       exception = exceptionToPrint.toString.trim,
       stacktraceBase64 = encodedStacktrace,
-      stacktraceLines = stacktraceLines.toJavaList()
+      stacktraceLines = stacktraceLines
     )
-
-    // TODO: use JsonSerializable
-    val gson = GsonBuilder().setPrettyPrinting().create()
 
     Response.error(
       status = Status.BadRequest,
-      body = Body.fromString(gson.toJson(response), UTF_8)
+      body = Body.fromString(response.toJson, UTF_8)
     )
   }
 

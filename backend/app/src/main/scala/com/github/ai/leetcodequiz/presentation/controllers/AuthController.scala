@@ -8,7 +8,7 @@ import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.domain.PasswordService
 import com.github.ai.leetcodequiz.domain.authentication.JwtTokeService
 import com.github.ai.leetcodequiz.entity.exception.DomainError
-import com.github.ai.leetcodequiz.utils.toUserDto
+import com.github.ai.leetcodequiz.utils.{readBodyAsString, toUserDto}
 import zio.*
 import zio.direct.*
 import zio.http.{Request, Response}
@@ -23,41 +23,39 @@ class AuthController(
 ) {
 
   def signup(request: Request): IO[DomainError, Response] = defer {
-    val body = jsonSerializer
-      .deserializer(
-        request.body.asString,
-        classOf[SignupRequest]
-      )
+    val body = request
+      .readBodyAsString()
+      .flatMap { text => jsonSerializer.deserialize[SignupRequest](text) }
       .run
 
-    val existingUser = userRepository.findByEmail(body.email()).run
+    val existingUser = userRepository.findByEmail(body.email).run
     if (existingUser.isDefined) {
       ZIO.fail(DomainError("User already exists")).run
     }
 
     val user = UserEntity(
       uid = UserUid(UUID.randomUUID()),
-      name = body.name(),
-      email = body.email(),
-      passwordHash = passwordService.hashPassword(body.password())
+      name = body.name,
+      email = body.email,
+      passwordHash = passwordService.hashPassword(body.password)
     )
 
     userRepository.add(user).run
 
     val token = jwtService.createToken(user.uid)
-    Response.json(jsonSerializer.serialize(SignupResponse(token, toUserDto(user))))
+    val response = SignupResponse(token, toUserDto(user))
+
+    Response.json(jsonSerializer.serialize(response))
   }
 
   def login(request: Request): IO[DomainError, Response] = defer {
-    val body = jsonSerializer
-      .deserializer(
-        request.body.asString,
-        classOf[LoginRequest]
-      )
+    val body = request
+      .readBodyAsString()
+      .flatMap { text => jsonSerializer.deserialize[LoginRequest](text) }
       .run
 
     val userOption = userRepository
-      .findByEmail(body.email())
+      .findByEmail(body.email)
       .mapError(DomainError(_))
       .run
 
@@ -67,13 +65,15 @@ class AuthController(
 
     val user = userOption.get
     val isValidPassword =
-      passwordService.isPasswordMatch(body.password(), user.passwordHash)
+      passwordService.isPasswordMatch(body.password, user.passwordHash)
 
     if (!isValidPassword) {
       ZIO.fail(DomainError("Invalid email or password")).run
     }
 
     val token = jwtService.createToken(user.uid)
-    Response.json(jsonSerializer.serialize(LoginResponse(token, toUserDto(user))))
+    val response = LoginResponse(token, toUserDto(user))
+
+    Response.json(jsonSerializer.serialize(response))
   }
 }

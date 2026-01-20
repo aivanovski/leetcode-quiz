@@ -56,6 +56,8 @@ class JwtTokeService(
       .mapError(DomainError(_))
       .run
 
+    // TODO: check is userId is a valid user
+
     userId
   }
 }

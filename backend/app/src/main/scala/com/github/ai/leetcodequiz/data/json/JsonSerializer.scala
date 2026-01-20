@@ -1,34 +1,16 @@
 package com.github.ai.leetcodequiz.data.json
 
-import com.github.ai.leetcodequiz.entity.exception.{
-  DomainError,
-  JsonDeserializationError,
-  ParsingError
-}
-import com.github.ai.leetcodequiz.utils.some
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
-import zio.{IO, Task, ZIO}
+import com.github.ai.leetcodequiz.entity.exception.ParsingError
+import zio.{IO, ZIO}
+import zio.json.*
 
 class JsonSerializer {
 
-  private val gson = GsonBuilder().setPrettyPrinting().create()
+  def serialize[T](data: T)(implicit encoder: JsonEncoder[T]): String =
+    data.toJsonPretty
 
-  def serialize(data: Any): String = {
-    gson.toJson(data)
-  }
-
-  def deserializer[T](
-    data: Task[String],
-    typeOf: Class[T]
-  ): IO[ParsingError, T] = {
-    for {
-      json <- data.mapError(error => ParsingError(message = "Unable to read json data"))
-      result <- ZIO
-        .attempt {
-          gson.fromJson(json, TypeToken.get(typeOf))
-        }
-        .mapError(error => JsonDeserializationError(typeOf = typeOf, cause = error.some))
-    } yield result
-  }
+  def deserialize[T](data: String)(implicit decoder: JsonDecoder[T]): IO[ParsingError, T] =
+    ZIO
+      .fromEither(data.fromJson[T](using decoder))
+      .mapError(ParsingError(_))
 }

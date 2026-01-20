@@ -6,7 +6,6 @@ import com.github.ai.leetcodequiz.data.db.model.ProblemId
 import com.github.ai.leetcodequiz.data.db.repository.ProblemRepository
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
-import com.github.ai.leetcodequiz.utils.toJavaList
 import com.github.ai.leetcodequiz.utils.parseIdFromUrl
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
@@ -17,6 +16,7 @@ class ProblemController(
   private val problemRepository: ProblemRepository,
   private val jsonSerializer: JsonSerializer
 ) {
+
   def getProblems(): IO[DomainError, Response] = defer {
     val problems = problemRepository.getAll().run
 
@@ -26,7 +26,7 @@ class ProblemController(
   def getProblem(
     request: Request
   ): IO[DomainError, Response] = defer {
-    val id = parseIdFromUrl(request).run
+    val id = request.parseIdFromUrl().run
     val problem = problemRepository.getById(id = ProblemId(id)).run
 
     if (problem.isEmpty) {
@@ -42,7 +42,7 @@ class ProblemController(
         id = problem.id.toString.toInt,
         title = problem.title,
         content = problem.content,
-        hints = problem.hints.toJavaList(),
+        hints = problem.hints,
         categoryTitle = problem.category,
         difficulty = problem.difficulty.toString,
         url = problem.url,
@@ -66,7 +66,6 @@ class ProblemController(
             dislikes = problem.dislikes
           )
         }
-        .toJavaList()
     )
   }
 }

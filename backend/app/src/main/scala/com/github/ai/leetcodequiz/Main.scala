@@ -125,8 +125,8 @@ object Main extends ZIOAppDefault {
         Layers.userDao,
 
         // Others
+        Layers.jsonSerializer,
         Layers.fileSystemProvider,
-        Layers.jsonSerialized,
         Layers.problemParser,
         Server.live,
         ZLayer.succeed(serverConfig),
