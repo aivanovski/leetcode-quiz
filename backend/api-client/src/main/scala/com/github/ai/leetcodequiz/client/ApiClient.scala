@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.client
 
-import com.github.ai.leetcodequiz.apisc.request.{LoginRequest, PostSubmissionRequest, SignupRequest}
-import com.github.ai.leetcodequiz.apisc.response.{LoginResponse, PostSubmissionResponse}
+import com.github.ai.leetcodequiz.api.request.{LoginRequest, PostSubmissionRequest, SignupRequest}
+import com.github.ai.leetcodequiz.api.response.{LoginResponse, PostSubmissionResponse}
 import zio.*
 import zio.http.*
 import zio.json.*

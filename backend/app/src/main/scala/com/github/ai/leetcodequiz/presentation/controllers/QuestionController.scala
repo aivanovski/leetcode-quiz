@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.apisc.QuestionItemDto
-import com.github.ai.leetcodequiz.apisc.response.GetHintsResponse
+import com.github.ai.leetcodequiz.api.QuestionItemDto
+import com.github.ai.leetcodequiz.api.response.GetHintsResponse
 import com.github.ai.leetcodequiz.data.db.model.QuestionEntity
 import com.github.ai.leetcodequiz.data.db.repository.{ProblemRepository, QuestionRepository}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer

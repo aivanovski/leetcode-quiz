@@ -1,4 +1,4 @@
-package com.github.ai.leetcodequiz.apisc.request
+package com.github.ai.leetcodequiz.api.request
 
 import zio.json.{JsonDecoder, JsonEncoder}
 

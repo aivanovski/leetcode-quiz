@@ -1,8 +1,8 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.apisc.request.PostSubmissionRequest
+import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
 import com.github.ai.leetcodequiz.utils.{getLastUrlParameter, parseUid, readBodyAsString, toQuestionnaireItemDto}
-import com.github.ai.leetcodequiz.apisc.response.{GetQuestionnaireResponse, GetQuestionnairesResponse, PostSubmissionResponse}
+import com.github.ai.leetcodequiz.api.response.{GetQuestionnaireResponse, GetQuestionnairesResponse, PostSubmissionResponse}
 import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, QuestionnaireEntity, QuestionnaireUid}
 import com.github.ai.leetcodequiz.data.db.repository.{QuestionRepository, QuestionnaireRepository, SubmissionRepository}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer

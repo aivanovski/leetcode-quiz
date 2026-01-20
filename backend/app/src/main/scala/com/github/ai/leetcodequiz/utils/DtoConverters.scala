@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.utils
 
-import com.github.ai.leetcodequiz.apisc.{QuestionItemDto, QuestionnaireItemDto}
-import com.github.ai.leetcodequiz.apisc.UserDto as UserDtoSc
+import com.github.ai.leetcodequiz.api.{QuestionItemDto, QuestionnaireItemDto}
+import com.github.ai.leetcodequiz.api.UserDto as UserDtoSc
 import com.github.ai.leetcodequiz.data.db.model.{
   QuestionEntity,
   QuestionUid,

@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz.utils
 
-import com.github.ai.leetcodequiz.apisc.ErrorMessageDto
+import com.github.ai.leetcodequiz.api.ErrorMessageDto
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.*
 

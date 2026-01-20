@@ -1,6 +1,6 @@
-package com.github.ai.leetcodequiz.apisc.response
+package com.github.ai.leetcodequiz.api.response
 
-import com.github.ai.leetcodequiz.apisc.ProblemsItemDto
+import com.github.ai.leetcodequiz.api.ProblemsItemDto
 import zio.json.{JsonDecoder, JsonEncoder}
 
 case class GetProblemsResponse(

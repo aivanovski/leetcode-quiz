@@ -1,15 +1,13 @@
-package com.github.ai.leetcodequiz.apisc
+package com.github.ai.leetcodequiz.api
 
 import zio.json.{JsonDecoder, JsonEncoder}
 
-case class ProblemItemDto(
+case class ProblemsItemDto(
   id: Int,
   title: String,
-  content: String,
-  hints: List[String],
   categoryTitle: String,
   difficulty: String,
   url: String,
-  likes: Int,
-  dislikes: Int
+  dislikes: Int,
+  likes: Int
 ) derives JsonEncoder, JsonDecoder

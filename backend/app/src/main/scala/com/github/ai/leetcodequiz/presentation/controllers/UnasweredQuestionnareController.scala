@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.apisc.QuestionItemDto
-import com.github.ai.leetcodequiz.apisc.response.GetUnansweredQuestionsResponse
+import com.github.ai.leetcodequiz.api.QuestionItemDto
+import com.github.ai.leetcodequiz.api.response.GetUnansweredQuestionsResponse
 import com.github.ai.leetcodequiz.data.db.model.{ProblemId, QuestionEntity, QuestionnaireUid}
 import com.github.ai.leetcodequiz.data.db.repository.{
   ProblemRepository,

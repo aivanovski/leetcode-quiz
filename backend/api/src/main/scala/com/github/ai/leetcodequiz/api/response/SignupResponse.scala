@@ -1,6 +1,6 @@
-package com.github.ai.leetcodequiz.apisc.response
+package com.github.ai.leetcodequiz.api.response
 
-import com.github.ai.leetcodequiz.apisc.UserDto
+import com.github.ai.leetcodequiz.api.UserDto
 import zio.json.{JsonDecoder, JsonEncoder}
 
 case class SignupResponse(

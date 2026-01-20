@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.apisc.request.{LoginRequest, SignupRequest}
-import com.github.ai.leetcodequiz.apisc.response.{LoginResponse, SignupResponse}
+import com.github.ai.leetcodequiz.api.request.{LoginRequest, SignupRequest}
+import com.github.ai.leetcodequiz.api.response.{LoginResponse, SignupResponse}
 import com.github.ai.leetcodequiz.data.db.model.{UserEntity, UserUid}
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
