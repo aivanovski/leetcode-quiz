@@ -6,4 +6,5 @@ import zio.json.{JsonDecoder, JsonEncoder}
 case class SignupResponse(
   token: String,
   user: UserDto
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

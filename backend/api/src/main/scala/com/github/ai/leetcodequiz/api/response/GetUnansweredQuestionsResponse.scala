@@ -5,4 +5,5 @@ import zio.json.{JsonDecoder, JsonEncoder}
 
 case class GetUnansweredQuestionsResponse(
   questions: List[QuestionItemDto]
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

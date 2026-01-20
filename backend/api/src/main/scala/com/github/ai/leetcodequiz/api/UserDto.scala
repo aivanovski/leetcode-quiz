@@ -5,4 +5,5 @@ import zio.json.{JsonDecoder, JsonEncoder}
 case class UserDto(
   name: String,
   email: String
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

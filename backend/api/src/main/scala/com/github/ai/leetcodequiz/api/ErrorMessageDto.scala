@@ -7,4 +7,5 @@ case class ErrorMessageDto(
   exception: String,
   stacktraceBase64: String,
   stacktraceLines: List[String]
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

@@ -6,4 +6,5 @@ case class QuestionnaireItemDto(
   id: String,
   isComplete: Boolean,
   nextQuestions: List[QuestionItemDto]
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

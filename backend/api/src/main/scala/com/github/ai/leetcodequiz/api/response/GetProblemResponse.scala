@@ -5,4 +5,5 @@ import zio.json.{JsonDecoder, JsonEncoder}
 
 case class GetProblemResponse(
   problem: ProblemItemDto
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

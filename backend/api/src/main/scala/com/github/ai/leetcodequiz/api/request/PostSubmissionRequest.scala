@@ -5,4 +5,5 @@ import zio.json.{JsonDecoder, JsonEncoder}
 case class PostSubmissionRequest(
   questionId: String,
   answer: Int
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

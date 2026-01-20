@@ -8,4 +8,5 @@ case class QuestionItemDto(
   problemTitle: String,
   question: String,
   complexity: String
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

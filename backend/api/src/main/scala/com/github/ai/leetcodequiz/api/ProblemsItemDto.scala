@@ -10,4 +10,5 @@ case class ProblemsItemDto(
   url: String,
   dislikes: Int,
   likes: Int
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder

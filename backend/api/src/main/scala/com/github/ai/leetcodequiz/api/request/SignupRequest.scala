@@ -6,4 +6,5 @@ case class SignupRequest(
   name: String,
   email: String,
   password: String
-) derives JsonEncoder, JsonDecoder
+) derives JsonEncoder,
+      JsonDecoder
