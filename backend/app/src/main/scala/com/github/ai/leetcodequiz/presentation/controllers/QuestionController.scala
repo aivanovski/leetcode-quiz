@@ -1,13 +1,12 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.QuestionItemDto
-import com.github.ai.leetcodequiz.api.response.GetHintsResponse
+import com.github.ai.leetcodequiz.apisc.QuestionItemDto
+import com.github.ai.leetcodequiz.apisc.response.GetHintsResponse
 import com.github.ai.leetcodequiz.data.db.model.QuestionEntity
 import com.github.ai.leetcodequiz.data.db.repository.{ProblemRepository, QuestionRepository}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.entity.exception.DomainError
-import com.github.ai.leetcodequiz.utils.toJavaList
 import zio.*
 import zio.direct.*
 import zio.http.Response
@@ -45,7 +44,6 @@ class QuestionController(
             complexity = question.complexity
           )
         }
-        .toJavaList()
     )
   }
 }

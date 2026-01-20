@@ -1,40 +1,18 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
-import com.github.ai.leetcodequiz.utils.{
-  getLastUrlParameter,
-  parseIdFromUrl,
-  parseUid,
-  toJavaList,
-  toQuestionnaireItemDto
-}
-import com.github.ai.leetcodequiz.api.response.{
-  GetQuestionnaireResponse,
-  GetQuestionnairesResponse,
-  PostSubmissionResponse
-}
-import com.github.ai.leetcodequiz.data.db.model.{
-  QuestionEntity,
-  QuestionUid,
-  QuestionnaireEntity,
-  QuestionnaireUid
-}
-import com.github.ai.leetcodequiz.data.db.repository.{
-  QuestionRepository,
-  QuestionnaireRepository,
-  SubmissionRepository
-}
+import com.github.ai.leetcodequiz.apisc.request.PostSubmissionRequest
+import com.github.ai.leetcodequiz.utils.{getLastUrlParameter, parseUid, readBodyAsString, toQuestionnaireItemDto}
+import com.github.ai.leetcodequiz.apisc.response.{GetQuestionnaireResponse, GetQuestionnairesResponse, PostSubmissionResponse}
+import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, QuestionnaireEntity, QuestionnaireUid}
+import com.github.ai.leetcodequiz.data.db.repository.{QuestionRepository, QuestionnaireRepository, SubmissionRepository}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
-import com.github.ai.leetcodequiz.domain.usecases.{
-  CreateNewQuestionnaireUseCase,
-  SubmitQuestionAnswerUseCase
-}
+import com.github.ai.leetcodequiz.domain.usecases.{CreateNewQuestionnaireUseCase, SubmitQuestionAnswerUseCase}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.{IO, ZIO}
 import zio.direct.*
 import zio.http.{Request, Response}
 
-import java.util.{Random, UUID}
+import java.util.Random
 
 class QuestionnaireController(
   private val createQuestionnaireUseCase: CreateNewQuestionnaireUseCase,
@@ -95,11 +73,9 @@ class QuestionnaireController(
   def postSubmission(
     request: Request
   ): IO[DomainError, Response] = defer {
-    val body = jsonSerializer
-      .deserializer(
-        request.body.asString,
-        classOf[PostSubmissionRequest]
-      )
+    val body = request
+      .readBodyAsString()
+      .flatMap { text => jsonSerializer.deserialize[PostSubmissionRequest](text) }
       .run
 
     val questionnaireUid = request
@@ -108,13 +84,13 @@ class QuestionnaireController(
       .map(QuestionnaireUid(_))
       .run
 
-    val questionUid = body.questionId().parseUid().map(QuestionUid(_)).run
+    val questionUid = body.questionId.parseUid().map(QuestionUid(_)).run
 
     val questionnaire = submitAnswerUseCase
       .submitAnswer(
         questionnaireUid = questionnaireUid,
         questionUid = questionUid,
-        answer = body.answer()
+        answer = body.answer
       )
       .run
 
@@ -173,6 +149,6 @@ class QuestionnaireController(
             )
           }
         )
-    } yield GetQuestionnairesResponse(items.toJavaList())
+    } yield GetQuestionnairesResponse(items)
   }
 }

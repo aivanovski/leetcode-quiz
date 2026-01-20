@@ -8,10 +8,12 @@ import zio.*
 import zio.direct.*
 import zio.json.*
 
-class ProblemParser {
+class ProblemParser(
+  private val jsonSerializer: JsonSerializer
+) {
 
   def parse(jsonContent: String): IO[DomainError, List[Problem]] = defer {
-    val data = jsonContent.parseJson[List[DataItem]].run
+    val data = jsonSerializer.deserialize[List[DataItem]](jsonContent).run
 
     val problems = ZIO.collectAll {
       data.map { item => convertProblem(problem = item.data.question) }
@@ -44,11 +46,13 @@ class ProblemParser {
 
   case class DataItem(
     data: ProblemItem
-  )
+  ) derives JsonEncoder,
+        JsonDecoder
 
   case class ProblemItem(
     question: ProblemJsonEntity
-  )
+  ) derives JsonEncoder,
+        JsonDecoder
 
   case class ProblemJsonEntity(
     questionId: String,
@@ -60,20 +64,6 @@ class ProblemParser {
     hints: List[String],
     likes: Int,
     dislikes: Int
-  )
-
-  object DataItem {
-    implicit val decoder: JsonDecoder[DataItem] =
-      DeriveJsonDecoder.gen[DataItem]
-  }
-
-  object ProblemItem {
-    implicit val decoder: JsonDecoder[ProblemItem] =
-      DeriveJsonDecoder.gen[ProblemItem]
-  }
-
-  object ProblemJsonEntity {
-    implicit val decoder: JsonDecoder[ProblemJsonEntity] =
-      DeriveJsonDecoder.gen[ProblemJsonEntity]
-  }
+  ) derives JsonEncoder,
+        JsonDecoder
 }

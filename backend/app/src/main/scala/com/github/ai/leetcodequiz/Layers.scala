@@ -31,11 +31,11 @@ import com.github.ai.leetcodequiz.domain.usecases.{
 import com.github.ai.leetcodequiz.domain.{PasswordService, ScheduledJobService, StartupService}
 import com.github.ai.leetcodequiz.entity.JwtData
 import com.github.ai.leetcodequiz.presentation.controllers.{
+  AuthController,
   ProblemController,
   QuestionController,
   QuestionnaireController,
-  UnasweredQuestionnareController,
-  AuthController
+  UnasweredQuestionnareController
 }
 import zio.{ZIO, ZLayer}
 
@@ -87,7 +87,7 @@ object Layers {
   val userController = ZLayer.fromFunction(AuthController(_, _, _, _))
 
   // Other
-  val jsonSerialized = ZLayer.succeed(JsonSerializer())
-  val problemParser = ZLayer.succeed(ProblemParser())
+  val jsonSerializer = ZLayer.succeed(JsonSerializer())
+  val problemParser = ZLayer.fromFunction(ProblemParser(_))
   val fileSystemProvider = ZLayer.succeed[FileSystemProvider](FileSystemProviderImpl())
 }

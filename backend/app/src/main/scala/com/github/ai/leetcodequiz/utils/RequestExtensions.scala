@@ -20,15 +20,19 @@ extension (request: Request) {
       ZIO.fail(DomainError(message = "Invalid id parameter"))
     }
   }
-}
 
-def parseIdFromUrl(request: Request): IO[DomainError, Long] = defer {
-  val lastParam = request.getLastUrlParameter().run
+  def parseIdFromUrl(): IO[DomainError, Long] = defer {
+    val lastParam = request.getLastUrlParameter().run
 
-  val id = ZIO
-    .attempt(lastParam.toLong)
-    .mapError(DomainError(_))
-    .run
+    val id = ZIO
+      .attempt(lastParam.toLong)
+      .mapError(DomainError(_))
+      .run
 
-  id
+    id
+  }
+
+  def readBodyAsString(): IO[DomainError, String] =
+    request.body.asString
+      .mapError(DomainError(_))
 }

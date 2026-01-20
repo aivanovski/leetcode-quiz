@@ -54,7 +54,9 @@ class JwtTokeService(
     val userId = ZIO
       .attempt(UserUid(UUID.fromString(subject)))
       .mapError(DomainError(_))
-      .run
+      .run 
+    
+    // TODO: check is userId is a valid user
 
     userId
   }
