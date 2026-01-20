@@ -103,7 +103,6 @@ lazy val apiClient = project
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
       case x => MergeStrategy.first
     },
-//    wartremoverErrors ++= Warts.unsafe,
     assembly / mainClass := Some("com.github.ai.leetcodequiz.client.ApiClientMain"),
     assembly / assemblyJarName := "leetcode-quiz-api-client.jar",
     libraryDependencies ++= Seq(
@@ -111,4 +110,20 @@ lazy val apiClient = project
       "dev.zio" %% "zio-direct" % zioDirect,
       "dev.zio" %% "zio-http" % zioHttp
     )
+  )
+
+lazy val generateKotlinClasses = taskKey[Unit]("Generate Kotlin API classes")
+
+lazy val codegen = project
+  .in(file("codegen"))
+  .dependsOn(api)
+  .settings(
+    name := "leetcode-quiz-codegen",
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio" % zioVersion,
+      "dev.zio" %% "zio-direct" % zioDirect
+    ),
+    generateKotlinClasses := {
+      (Compile / runMain).toTask(" com.github.ai.leetcodequiz.codegen.TranspilerMain api/src/main/scala ./../android/backend-api/src/main/kotlin").value
+    }
   )
