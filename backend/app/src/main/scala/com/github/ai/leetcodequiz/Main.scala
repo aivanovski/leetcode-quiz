@@ -107,7 +107,6 @@ object Main extends ZIOAppDefault {
         Layers.scheduledJobService,
         Layers.passwordService,
         Layers.jwtTokeService,
-        Layers.accessResolver,
 
         // Repositories
         Layers.dataSyncRepository,

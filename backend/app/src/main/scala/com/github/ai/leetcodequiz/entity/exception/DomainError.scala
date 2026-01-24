@@ -68,6 +68,6 @@ class FailedToFindEntityError(
   entityType: Class[?],
   criteria: String
 ) extends DatabaseError(
-      message = Some(s"Failed to find ${entityType.getSimpleName} by: "),
+      message = Some(s"Failed to find ${entityType.getSimpleName} by: $criteria"),
       cause = None
     )

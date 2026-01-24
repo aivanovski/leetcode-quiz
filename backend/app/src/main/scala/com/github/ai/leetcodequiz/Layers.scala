@@ -67,7 +67,6 @@ object Layers {
   val jwtTokeService = ZLayer.fromFunction(JwtTokeService(_, _))
   val startupService = ZLayer.succeed(StartupService())
   val scheduledJobService = ZLayer.succeed(ScheduledJobService())
-  val accessResolver = ZLayer.fromFunction(AccessResolver(_, _))
 
   // Scheduled jobs
   val syncProblemsJob = ZLayer.fromFunction(SyncProblemsJob(_, _, _, _, _))
@@ -80,7 +79,7 @@ object Layers {
   val setupTestDataUseCase = ZLayer.fromFunction(SetupTestDataUseCase(_, _))
   val validateEmailUseCase = ZLayer.succeed(ValidateEmailUseCase())
   val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _, _))
-  val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_))
+  val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_, _, _))
 
   // Response use cases
 
