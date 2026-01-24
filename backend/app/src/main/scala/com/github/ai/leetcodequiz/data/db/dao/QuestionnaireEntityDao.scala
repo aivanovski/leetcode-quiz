@@ -2,10 +2,10 @@ package com.github.ai.leetcodequiz.data.db.dao
 
 import com.github.ai.leetcodequiz.data.db.execute
 import com.github.ai.leetcodequiz.data.db.given
-import com.github.ai.leetcodequiz.data.db.model.{QuestionnaireEntity, QuestionnaireUid, QuestionUid}
+import com.github.ai.leetcodequiz.data.db.model.{QuestionUid, QuestionnaireEntity, QuestionnaireUid}
 import com.github.ai.leetcodequiz.data.db.model.QuestionnaireUid.given
 import com.github.ai.leetcodequiz.data.db.model.QuestionUid.given
-import com.github.ai.leetcodequiz.entity.exception.DatabaseError
+import com.github.ai.leetcodequiz.entity.exception.{DatabaseError, FailedToFindEntityError}
 import doobie.implicits.*
 import doobie.syntax.ConnectionIOOps
 import doobie.util.transactor.Transactor
@@ -17,7 +17,7 @@ class QuestionnaireEntityDao(
 
   def getAll(): IO[DatabaseError, List[QuestionnaireEntity]] = {
     sql"""
-        SELECT uid, next, after_next, is_complete, seed
+        SELECT uid, is_complete
         FROM questionnaires
       """
       .query[QuestionnaireEntity]
@@ -25,9 +25,9 @@ class QuestionnaireEntityDao(
       .execute(transactor)
   }
 
-  def getByUid(uid: QuestionnaireUid): IO[DatabaseError, Option[QuestionnaireEntity]] = {
+  def findByUid(uid: QuestionnaireUid): IO[DatabaseError, Option[QuestionnaireEntity]] = {
     sql"""
-        SELECT uid, next, after_next, is_complete, seed
+        SELECT uid, is_complete
         FROM questionnaires
         WHERE uid = $uid
       """
@@ -36,10 +36,19 @@ class QuestionnaireEntityDao(
       .execute(transactor)
   }
 
+  def getByUid(uid: QuestionnaireUid): IO[DatabaseError, QuestionnaireEntity] = {
+    findByUid(uid)
+      .flatMap { opt =>
+        ZIO
+          .fromOption(opt)
+          .mapError(_ => FailedToFindEntityError(classOf[QuestionnaireEntity], "uid = $uid"))
+      }
+  }
+
   def add(questionnaire: QuestionnaireEntity): IO[DatabaseError, QuestionnaireEntity] = {
     sql"""
-        INSERT INTO questionnaires (uid, next, after_next, is_complete, seed)
-        VALUES (${questionnaire.uid}, ${questionnaire.next}, ${questionnaire.afterNext}, ${questionnaire.isComplete}, ${questionnaire.seed})
+        INSERT INTO questionnaires (uid, is_complete)
+        VALUES (${questionnaire.uid}, ${questionnaire.isComplete})
       """.update.run
       .map(_ => questionnaire)
       .execute(transactor)
@@ -56,7 +65,7 @@ class QuestionnaireEntityDao(
   def update(questionnaire: QuestionnaireEntity): IO[DatabaseError, QuestionnaireEntity] = {
     sql"""
         UPDATE questionnaires
-        SET next = ${questionnaire.next}, after_next = ${questionnaire.afterNext}, is_complete = ${questionnaire.isComplete}, seed = ${questionnaire.seed}
+        SET is_complete = ${questionnaire.isComplete}
         WHERE uid = ${questionnaire.uid}
       """.update.run
       .map(_ => questionnaire)

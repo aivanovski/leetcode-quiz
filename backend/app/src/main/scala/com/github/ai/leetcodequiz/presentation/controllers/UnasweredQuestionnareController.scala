@@ -58,7 +58,6 @@ class UnasweredQuestionnareController(
           QuestionItemDto(
             id = question.uid.toString,
             problemId = question.problemId.toString.toInt,
-            problemTitle = problemIdToTitleMap.getOrElse(question.problemId, ""),
             question = question.question,
             complexity = question.complexity
           )

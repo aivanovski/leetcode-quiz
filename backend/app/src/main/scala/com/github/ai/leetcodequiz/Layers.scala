@@ -2,6 +2,7 @@ package com.github.ai.leetcodequiz
 
 import com.github.ai.leetcodequiz.data.db.dao.{
   DataSyncEntityDao,
+  NextQuestionEntityDao,
   ProblemEntityDao,
   ProblemHintEntityDao,
   QuestionEntityDao,
@@ -24,6 +25,8 @@ import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
   CreateNewQuestionnaireUseCase,
+  GetRemainedQuestionsUseCase,
+  SelectNextQuestionsUseCase,
   SetupTestDataUseCase,
   SubmitQuestionAnswerUseCase,
   ValidateEmailUseCase
@@ -49,12 +52,13 @@ object Layers {
   val questionnaireDao = ZLayer.fromFunction(QuestionnaireEntityDao(_))
   val submissionDao = ZLayer.fromFunction(SubmissionEntityDao(_))
   val userDao = ZLayer.fromFunction(UserEntityDao(_))
+  val nextQuestionDao = ZLayer.fromFunction(NextQuestionEntityDao(_))
 
   // Repositories
   val dataSyncRepository = ZLayer.fromFunction(DataSyncRepository(_))
   val problemRepository = ZLayer.fromFunction(ProblemRepository(_, _))
   val questionRepository = ZLayer.fromFunction(QuestionRepository(_))
-  val questionnaireRepository = ZLayer.fromFunction(QuestionnaireRepository(_))
+  val questionnaireRepository = ZLayer.fromFunction(QuestionnaireRepository(_, _))
   val submissionRepository = ZLayer.fromFunction(SubmissionRepository(_))
   val userRepository = ZLayer.fromFunction(UserRepository(_))
 
@@ -71,18 +75,20 @@ object Layers {
 
   // Use cases
   val cloneGithubRepositoryUseCase = ZLayer.fromFunction(CloneGithubRepositoryUseCase(_))
-  val createNewQuestionnaireUseCase = ZLayer.fromFunction(CreateNewQuestionnaireUseCase(_, _))
-  val submitQuestionAnswerUseCase = ZLayer.fromFunction(SubmitQuestionAnswerUseCase(_, _, _))
+  val createNewQuestionnaireUseCase = ZLayer.fromFunction(CreateNewQuestionnaireUseCase(_, _, _))
+  val submitQuestionAnswerUseCase = ZLayer.fromFunction(SubmitQuestionAnswerUseCase(_, _, _, _, _))
   val setupTestDataUseCase = ZLayer.fromFunction(SetupTestDataUseCase(_, _))
   val validateEmailUseCase = ZLayer.succeed(ValidateEmailUseCase())
+  val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _, _))
+  val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_))
 
   // Response use cases
 
   // Controllers
   val problemController = ZLayer.fromFunction(ProblemController(_, _))
   val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
-  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _))
-  val unasweredQuestionnareController =
+  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _))
+  val unansweredQuestionnaireController =
     ZLayer.fromFunction(UnasweredQuestionnareController(_, _, _, _, _))
   val userController = ZLayer.fromFunction(AuthController(_, _, _, _))
 

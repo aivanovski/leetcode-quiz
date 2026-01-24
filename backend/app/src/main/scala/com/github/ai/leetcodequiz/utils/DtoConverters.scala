@@ -1,16 +1,48 @@
 package com.github.ai.leetcodequiz.utils
 
-import com.github.ai.leetcodequiz.api.{QuestionItemDto, QuestionnaireItemDto}
-import com.github.ai.leetcodequiz.api.UserDto as UserDtoSc
+import com.github.ai.leetcodequiz.api.{
+  ProblemItemDto,
+  ProblemsItemDto,
+  QuestionItemDto,
+  QuestionnaireItemDto,
+  QuestionnairesItemDto,
+  UserDto as UserDtoSc
+}
 import com.github.ai.leetcodequiz.data.db.model.{
+  ProblemId,
   QuestionEntity,
   QuestionUid,
   QuestionnaireEntity,
   UserEntity
 }
+import com.github.ai.leetcodequiz.entity.{Problem, Questionnaire}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
 import zio.direct.*
+
+def toProblemItemDto(problem: Problem) =
+  ProblemItemDto(
+    id = problem.id.toString.toInt,
+    title = problem.title,
+    content = problem.content,
+    hints = problem.hints,
+    categoryTitle = problem.category,
+    difficulty = problem.difficulty.toString,
+    url = problem.url,
+    likes = problem.likes,
+    dislikes = problem.dislikes
+  )
+
+def toProblemsItemDto(problem: Problem) =
+  ProblemsItemDto(
+    id = problem.id.toString.toInt,
+    title = problem.title,
+    categoryTitle = problem.category,
+    difficulty = problem.difficulty.toString,
+    url = problem.url,
+    likes = problem.likes,
+    dislikes = problem.dislikes
+  )
 
 def toUserDto(user: UserEntity) =
   UserDtoSc(
@@ -18,51 +50,88 @@ def toUserDto(user: UserEntity) =
     email = user.email
   )
 
+def toQuestionItemDtos(questions: List[QuestionEntity]) =
+  questions.map { question => toQuestionItemDto(question) }
+
+def toQuestionItemDto(question: QuestionEntity) =
+  QuestionItemDto(
+    id = question.uid.toString,
+    problemId = question.problemId.toString.toInt,
+    question = question.question,
+    complexity = question.complexity
+  )
+
 def toQuestionnaireItemDto(
-  questionnaire: QuestionnaireEntity,
-  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
+  questionnaire: Questionnaire,
+  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity],
+  problemIdToProblemMap: Map[ProblemId, Problem]
 ): IO[DomainError, QuestionnaireItemDto] = defer {
-  val nextQuestion = resolveQuestion(questionnaire.next, questionUidToQuestionMap).run
-  val afterNextQuestion = resolveQuestion(questionnaire.afterNext, questionUidToQuestionMap).run
+  val questions = resolveQuestions(
+    uids = questionnaire.nextQuestions,
+    questionUidToQuestionMap = questionUidToQuestionMap
+  ).run
 
-  val questions = List(nextQuestion, afterNextQuestion).flatten
-    .map { q =>
-      QuestionItemDto(
-        id = q.uid.toString,
-        problemId = q.problemId.toString.toInt,
-        problemTitle = "TO BE DONE", // TODO
-        question = q.question,
-        complexity = q.complexity
-      )
-    }
+  val questionDtos = toQuestionItemDtos(questions)
 
-  createQuestionnairesItemDto(
-    questionnaire = questionnaire,
-    questions = questions
+  val problems = ZIO
+    .collectAll(questions.map { question =>
+      resolveProblem(question.problemId, problemIdToProblemMap)
+    })
+    .map { problems => problems.map(problem => toProblemItemDto(problem)) }
+    .run
+
+  QuestionnaireItemDto(
+    id = questionnaire.uid.toString,
+    isComplete = questionnaire.isComplete,
+    nextQuestions = questionDtos,
+    problems = problems
   )
 }
 
-private def createQuestionnairesItemDto(
-  questionnaire: QuestionnaireEntity,
-  questions: List[QuestionItemDto]
-): QuestionnaireItemDto = {
-  QuestionnaireItemDto(
+def toQuestionnairesItemDto(
+  questionnaire: Questionnaire,
+  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
+): IO[DomainError, QuestionnairesItemDto] = defer {
+  val questions = resolveQuestions(
+    uids = questionnaire.nextQuestions,
+    questionUidToQuestionMap = questionUidToQuestionMap
+  )
+    .map(questions => toQuestionItemDtos(questions))
+    .run
+
+  QuestionnairesItemDto(
     id = questionnaire.uid.toString,
     isComplete = questionnaire.isComplete,
     nextQuestions = questions
   )
 }
 
-private def resolveQuestion(
-  uid: Option[QuestionUid],
+private def resolveQuestions(
+  uids: List[QuestionUid],
   questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
-): IO[DomainError, Option[QuestionEntity]] = {
-  if (uid.isDefined) {
-    ZIO
-      .fromOption(questionUidToQuestionMap.get(uid.get))
-      .mapError(_ => DomainError(s"Failed to resolve question by uid: ${uid.get}"))
-      .map(uid => Some(uid))
-  } else {
-    ZIO.succeed(None)
-  }
+): IO[DomainError, List[QuestionEntity]] = {
+  ZIO
+    .collectAll(
+      uids.map { uid =>
+        resolveQuestion(uid, questionUidToQuestionMap)
+      }
+    )
+}
+
+private def resolveQuestion(
+  uid: QuestionUid,
+  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
+): IO[DomainError, QuestionEntity] = {
+  ZIO
+    .fromOption(questionUidToQuestionMap.get(uid))
+    .mapError(_ => DomainError(s"Failed to resolve question by uid: $uid"))
+}
+
+private def resolveProblem(
+  id: ProblemId,
+  problemIdToProblemMap: Map[ProblemId, Problem]
+): IO[DomainError, Problem] = {
+  ZIO
+    .fromOption(problemIdToProblemMap.get(id))
+    .mapError(_ => DomainError(s"Failed to resolve problemy by id: $id"))
 }

@@ -88,12 +88,14 @@ object Main extends ZIOAppDefault {
         Layers.createNewQuestionnaireUseCase,
         Layers.submitQuestionAnswerUseCase,
         Layers.setupTestDataUseCase,
+        Layers.selectNextQuestionsUseCase,
+        Layers.getRemainedQuestionsUseCase,
 
         // Controllers
         Layers.problemController,
         Layers.questionController,
         Layers.questionnaireController,
-        Layers.unasweredQuestionnareController,
+        Layers.unansweredQuestionnaireController,
         Layers.userController,
 
         // Scheduled jobs
@@ -123,6 +125,7 @@ object Main extends ZIOAppDefault {
         Layers.questionnaireDao,
         Layers.submissionDao,
         Layers.userDao,
+        Layers.nextQuestionDao,
 
         // Others
         Layers.jsonSerializer,

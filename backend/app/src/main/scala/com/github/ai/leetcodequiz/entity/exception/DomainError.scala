@@ -63,3 +63,11 @@ object DatabaseError {
   def apply(cause: Throwable): DatabaseError =
     new DatabaseError(None, Some(cause))
 }
+
+class FailedToFindEntityError(
+  entityType: Class[?],
+  criteria: String
+) extends DatabaseError(
+      message = Some(s"Failed to find ${entityType.getSimpleName} by: "),
+      cause = None
+    )

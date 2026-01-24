@@ -13,10 +13,7 @@ CREATE TABLE IF NOT EXISTS questions (
 
 CREATE TABLE IF NOT EXISTS questionnaires (
     uid TEXT PRIMARY KEY,
-    next TEXT,
-    after_next TEXT,
-    is_complete INTEGER NOT NULL,
-    seed INTEGER NOT NULL
+    is_complete INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS submissions (
@@ -25,6 +22,14 @@ CREATE TABLE IF NOT EXISTS submissions (
     question_uid TEXT NOT NULL,
     answer INTEGER NOT NULL,
     FOREIGN KEY (questionnaire_uid) REFERENCES questionnaires(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS next_questions (
+    uid TEXT PRIMARY KEY,
+    questionnaire_uid TEXT NOT NULL,
+    question_uid TEXT NOT NULL,
+    FOREIGN KEY (questionnaire_uid) REFERENCES questionnaires(uid) ON DELETE CASCADE,
+    FOREIGN KEY (question_uid) REFERENCES questions(uid) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS problems (
