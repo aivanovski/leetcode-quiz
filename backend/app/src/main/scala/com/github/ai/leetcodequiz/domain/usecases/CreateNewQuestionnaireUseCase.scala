@@ -32,9 +32,9 @@ class CreateNewQuestionnaireUseCase(
   def createNewQuestionnaire(): IO[DomainError, Questionnaire] = defer {
     val allQuestions = questionRepository.getAll().run
 
-    val questionnaireUid = QuestionnaireUid(UUID.randomUUID())
-    val nextQuestions = selectQuestionsUseCase.selectNextQuestions(questionnaireUid).run
+    val nextQuestions = selectQuestionsUseCase.selectNextQuestions(questionnaireUid = None).run
 
+    val questionnaireUid = QuestionnaireUid(UUID.randomUUID())
     questionnaireRepository
       .add(
         Questionnaire(

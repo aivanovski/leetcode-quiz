@@ -15,7 +15,6 @@ import com.github.ai.leetcodequiz.data.db.repository.{
 import com.github.ai.leetcodequiz.entity.Questionnaire
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 
-import java.util.Random
 import zio.{IO, ZIO}
 import zio.direct.*
 
@@ -35,8 +34,15 @@ class SubmitQuestionAnswerUseCase(
     answer: Int
   ): IO[DomainError, Questionnaire] = defer {
     val questionnaire = questionnaireRepository.getByUid(questionnaireUid).run
+    val allQuestions = questionRepository.getAll().run
     val remainedQuestions = getRemainedQuestionsUseCase.getRemainedQuestions(questionnaireUid).run
-    val remainedQuestionUids = remainedQuestions.map(_.uid)
+
+    val remainedQuestionUids = remainedQuestions.map(_.uid).toSet
+    val selectedQuestionUids = questionnaire.nextQuestions.toSet
+
+    val availableQuestions = allQuestions.filter { q =>
+      !remainedQuestionUids.contains(q.uid) && !selectedQuestionUids.contains(q.uid)
+    }.toSet
 
     if (questionnaire.isComplete) {
       ZIO.fail(DomainError(s"Questionnaire is already complete")).run
@@ -46,7 +52,7 @@ class SubmitQuestionAnswerUseCase(
       ZIO.fail(DomainError(s"Question not found: $questionUid")).run
     }
 
-    if (answer != 1 && answer != 1) {
+    if (answer != -1 && answer != 1) {
       ZIO.fail(DomainError(s"Invalid answer: $answer")).run
     }
 
@@ -72,7 +78,19 @@ class SubmitQuestionAnswerUseCase(
         )
         .run
     } else {
-      val nextQuestions = selectNextQuestionsUseCase.selectNextQuestions(questionnaireUid).run
+      val selectedQuestions = if (availableQuestions.nonEmpty) {
+        selectNextQuestionsUseCase
+          .selectNextQuestions(
+            questionnaireUid = Some(questionnaireUid),
+            numberOfQuestions = 1
+          )
+          .run
+      } else {
+        List.empty
+      }
+
+      val nextQuestions =
+        questionnaire.nextQuestions.filter(q => q != questionUid) ++ selectedQuestions
 
       questionnaireRepository
         .update(
