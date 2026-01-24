@@ -5,6 +5,7 @@ import com.github.ai.leetcodequiz.api.{
   ProblemsItemDto,
   QuestionItemDto,
   QuestionnaireItemDto,
+  QuestionnaireStatsDto,
   QuestionnairesItemDto,
   UserDto as UserDtoSc
 }
@@ -15,7 +16,7 @@ import com.github.ai.leetcodequiz.data.db.model.{
   QuestionnaireEntity,
   UserEntity
 }
-import com.github.ai.leetcodequiz.entity.{Problem, Questionnaire}
+import com.github.ai.leetcodequiz.entity.{Problem, Questionnaire, QuestionnaireStats}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
 import zio.direct.*
@@ -50,6 +51,13 @@ def toUserDto(user: UserEntity) =
     email = user.email
   )
 
+def toQuestionnaireStatsDto(stats: QuestionnaireStats) =
+  QuestionnaireStatsDto(
+    totalQuestions = stats.answeredQuestions + stats.notAnsweredQuestions,
+    answered = stats.answeredQuestions,
+    notAnswered = stats.notAnsweredQuestions
+  )
+
 def toQuestionItemDtos(questions: List[QuestionEntity]) =
   questions.map { question => toQuestionItemDto(question) }
 
@@ -63,6 +71,7 @@ def toQuestionItemDto(question: QuestionEntity) =
 
 def toQuestionnaireItemDto(
   questionnaire: Questionnaire,
+  stats: QuestionnaireStats,
   questionUidToQuestionMap: Map[QuestionUid, QuestionEntity],
   problemIdToProblemMap: Map[ProblemId, Problem]
 ): IO[DomainError, QuestionnaireItemDto] = defer {
@@ -84,12 +93,14 @@ def toQuestionnaireItemDto(
     id = questionnaire.uid.toString,
     isComplete = questionnaire.isComplete,
     nextQuestions = questionDtos,
-    problems = problems
+    problems = problems,
+    stats = toQuestionnaireStatsDto(stats)
   )
 }
 
 def toQuestionnairesItemDto(
   questionnaire: Questionnaire,
+  stats: QuestionnaireStats,
   questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
 ): IO[DomainError, QuestionnairesItemDto] = defer {
   val questions = resolveQuestions(
@@ -102,7 +113,8 @@ def toQuestionnairesItemDto(
   QuestionnairesItemDto(
     id = questionnaire.uid.toString,
     isComplete = questionnaire.isComplete,
-    nextQuestions = questions
+    nextQuestions = questions,
+    stats = toQuestionnaireStatsDto(stats)
   )
 }
 

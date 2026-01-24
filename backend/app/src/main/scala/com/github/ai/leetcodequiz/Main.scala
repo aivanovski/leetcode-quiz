@@ -115,6 +115,7 @@ object Main extends ZIOAppDefault {
         Layers.questionnaireRepository,
         Layers.submissionRepository,
         Layers.userRepository,
+        Layers.getQuestionnaireStatsUseCase,
 
         // Dao
         Layers.dataSyncDao,
