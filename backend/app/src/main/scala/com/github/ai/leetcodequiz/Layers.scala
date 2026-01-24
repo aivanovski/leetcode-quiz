@@ -25,6 +25,7 @@ import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
   CreateNewQuestionnaireUseCase,
+  GetQuestionnaireStatsUseCase,
   GetRemainedQuestionsUseCase,
   SelectNextQuestionsUseCase,
   SetupTestDataUseCase,
@@ -80,13 +81,12 @@ object Layers {
   val validateEmailUseCase = ZLayer.succeed(ValidateEmailUseCase())
   val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _, _))
   val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_, _, _))
-
-  // Response use cases
+  val getQuestionnaireStatsUseCase = ZLayer.fromFunction(GetQuestionnaireStatsUseCase(_, _, _))
 
   // Controllers
   val problemController = ZLayer.fromFunction(ProblemController(_, _))
   val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
-  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _))
+  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _, _))
   val unansweredQuestionnaireController =
     ZLayer.fromFunction(UnasweredQuestionnareController(_, _, _, _, _))
   val userController = ZLayer.fromFunction(AuthController(_, _, _, _))

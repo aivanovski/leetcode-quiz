@@ -5,6 +5,7 @@ import zio.json.{JsonDecoder, JsonEncoder}
 case class QuestionnairesItemDto(
   id: String,
   isComplete: Boolean,
-  nextQuestions: List[QuestionItemDto]
+  nextQuestions: List[QuestionItemDto],
+  stats: QuestionnaireStatsDto
 ) derives JsonEncoder,
       JsonDecoder

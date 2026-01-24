@@ -5,20 +5,15 @@ import com.github.ai.leetcodequiz.utils.{
   getLastUrlParameter,
   parseUid,
   readBodyAsString,
-  toQuestionnairesItemDto,
-  toQuestionnaireItemDto
+  toQuestionnaireItemDto,
+  toQuestionnairesItemDto
 }
 import com.github.ai.leetcodequiz.api.response.{
   GetQuestionnaireResponse,
   GetQuestionnairesResponse,
   PostSubmissionResponse
 }
-import com.github.ai.leetcodequiz.data.db.model.{
-  QuestionEntity,
-  QuestionUid,
-  QuestionnaireEntity,
-  QuestionnaireUid
-}
+import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, QuestionnaireUid}
 import com.github.ai.leetcodequiz.data.db.repository.{
   ProblemRepository,
   QuestionRepository,
@@ -28,6 +23,7 @@ import com.github.ai.leetcodequiz.data.db.repository.{
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.domain.usecases.{
   CreateNewQuestionnaireUseCase,
+  GetQuestionnaireStatsUseCase,
   SubmitQuestionAnswerUseCase
 }
 import com.github.ai.leetcodequiz.entity.Questionnaire
@@ -41,6 +37,7 @@ import java.util.Random
 class QuestionnaireController(
   private val createQuestionnaireUseCase: CreateNewQuestionnaireUseCase,
   private val submitAnswerUseCase: SubmitQuestionAnswerUseCase,
+  private val getStatsUseCase: GetQuestionnaireStatsUseCase,
   private val problemRepository: ProblemRepository,
   private val questionnaireRepository: QuestionnaireRepository,
   private val submissionRepository: SubmissionRepository,
@@ -58,6 +55,7 @@ class QuestionnaireController(
       .run
 
     val questionnaire = questionnaireRepository.getByUid(uid).run
+    val stats = getStatsUseCase.getStats(uid).run
     val questions = questionRepository.getAll().run
     val problems = problemRepository.getAll().run
 
@@ -66,6 +64,7 @@ class QuestionnaireController(
 
     val questionnaireDto = toQuestionnaireItemDto(
       questionnaire = questionnaire,
+      stats = stats,
       questionUidToQuestionMap = questionUidToQuestionMap,
       problemIdToProblemMap = problemIdToProblemMap
     ).run
@@ -83,11 +82,23 @@ class QuestionnaireController(
     val questions = questionRepository.getAll().run
     val questionUidToQuestionMap = questions.map(q => (q.uid, q)).toMap
 
+    val questionnairesAndStats = ZIO
+      .collectAll(
+        questionnaires
+          .map { questionnaire =>
+            getStatsUseCase
+              .getStats(questionnaire.uid)
+              .map(stats => (questionnaire, stats))
+          }
+      )
+      .run
+
     val questionnaireDtos = ZIO
       .collectAll(
-        questionnaires.map { questionnaire =>
+        questionnairesAndStats.map { (questionnaire, stats) =>
           toQuestionnairesItemDto(
             questionnaire,
+            stats,
             questionUidToQuestionMap
           )
         }
@@ -121,6 +132,8 @@ class QuestionnaireController(
       )
       .run
 
+    val stats = getStatsUseCase.getStats(questionnaireUid).run
+
     val questionUidToQuestionMap = questionRepository
       .getAll()
       .run
@@ -129,6 +142,7 @@ class QuestionnaireController(
 
     val response = toQuestionnairesItemDto(
       questionnaire = questionnaire,
+      stats = stats,
       questionUidToQuestionMap = questionUidToQuestionMap
     ).run
 
@@ -160,22 +174,5 @@ class QuestionnaireController(
       .fromOption(active)
       .mapError(_ => DomainError("Failed to find active questionnaire"))
       .run
-  }
-
-  private def createResponse(
-    questionnaires: List[Questionnaire],
-    questions: List[QuestionEntity]
-  ): IO[DomainError, GetQuestionnairesResponse] = {
-    for {
-      items <- ZIO
-        .collectAll(
-          questionnaires.map { questionnaire =>
-            toQuestionnairesItemDto(
-              questionnaire = questionnaire,
-              questionUidToQuestionMap = questions.map(q => (q.uid, q)).toMap
-            )
-          }
-        )
-    } yield GetQuestionnairesResponse(items)
   }
 }
