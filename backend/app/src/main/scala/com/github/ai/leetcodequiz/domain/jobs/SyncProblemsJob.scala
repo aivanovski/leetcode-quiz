@@ -115,6 +115,8 @@ class SyncProblemsJob(
 
     // Perform insertions
     if (insertions.nonEmpty) {
+      val startTime = Clock.nanoTime.run
+
       ZIO.logInfo(s"Inserting ${insertions.size} new problems:").run
       ZIO
         .foreach(insertions) { id =>
@@ -123,6 +125,10 @@ class SyncProblemsJob(
             problemRepository.add(problem)
         }
         .run
+
+      val endTime = Clock.nanoTime.run
+      val elapsedTime = (endTime - startTime) / 1000000L
+      ZIO.logInfo(s"Inserting of ${insertions.size} took $elapsedTime ms").run
     }
 
     // Perform updates

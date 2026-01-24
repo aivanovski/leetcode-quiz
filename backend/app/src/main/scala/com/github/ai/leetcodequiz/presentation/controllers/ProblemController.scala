@@ -6,7 +6,7 @@ import com.github.ai.leetcodequiz.data.db.model.ProblemId
 import com.github.ai.leetcodequiz.data.db.repository.ProblemRepository
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
-import com.github.ai.leetcodequiz.utils.parseIdFromUrl
+import com.github.ai.leetcodequiz.utils.{parseIdFromUrl, toProblemItemDto, toProblemsItemDto}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
 import zio.direct.*
@@ -19,8 +19,8 @@ class ProblemController(
 
   def getProblems(): IO[DomainError, Response] = defer {
     val problems = problemRepository.getAll().run
-
-    Response.json(jsonSerializer.serialize(createProblemsResponse(problems)))
+    val dtos = problems.map(p => toProblemsItemDto(p))
+    Response.json(jsonSerializer.serialize(GetProblemsResponse(dtos)))
   }
 
   def getProblem(
@@ -33,39 +33,7 @@ class ProblemController(
       ZIO.fail(DomainError(s"Failed to find entity by id: $id")).run
     }
 
-    Response.json(jsonSerializer.serialize(createProblemResponse(problem.get)))
-  }
-
-  private def createProblemResponse(problem: Problem): GetProblemResponse = {
-    GetProblemResponse(
-      ProblemItemDto(
-        id = problem.id.toString.toInt,
-        title = problem.title,
-        content = problem.content,
-        hints = problem.hints,
-        categoryTitle = problem.category,
-        difficulty = problem.difficulty.toString,
-        url = problem.url,
-        likes = problem.likes,
-        dislikes = problem.dislikes
-      )
-    )
-  }
-
-  private def createProblemsResponse(problems: List[Problem]): GetProblemsResponse = {
-    GetProblemsResponse(
-      problems
-        .map { problem =>
-          ProblemsItemDto(
-            id = problem.id.toString.toInt,
-            title = problem.title,
-            categoryTitle = problem.category,
-            difficulty = problem.difficulty.toString,
-            url = problem.url,
-            likes = problem.likes,
-            dislikes = problem.dislikes
-          )
-        }
-    )
+    val dto = toProblemItemDto(problem.get)
+    Response.json(jsonSerializer.serialize(GetProblemResponse(dto)))
   }
 }

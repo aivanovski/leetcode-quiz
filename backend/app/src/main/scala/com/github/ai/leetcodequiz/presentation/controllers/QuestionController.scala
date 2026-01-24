@@ -1,12 +1,13 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
 import com.github.ai.leetcodequiz.api.QuestionItemDto
-import com.github.ai.leetcodequiz.api.response.GetHintsResponse
+import com.github.ai.leetcodequiz.api.response.GetQuestionsResponse
 import com.github.ai.leetcodequiz.data.db.model.QuestionEntity
 import com.github.ai.leetcodequiz.data.db.repository.{ProblemRepository, QuestionRepository}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.entity.exception.DomainError
+import com.github.ai.leetcodequiz.utils.toQuestionItemDto
 import zio.*
 import zio.direct.*
 import zio.http.Response
@@ -29,21 +30,10 @@ class QuestionController(
         .map(p => (question, p))
     }
 
-    Response.json(jsonSerializer.serialize(createResponse(questionsAndProblems)))
-  }
+    val questionDtos = questionsAndProblems.map { (question, _) =>
+      toQuestionItemDto(question)
+    }
 
-  private def createResponse(data: List[(QuestionEntity, Problem)]): GetHintsResponse = {
-    GetHintsResponse(
-      data
-        .map { (question, problem) =>
-          QuestionItemDto(
-            id = question.uid.toString,
-            problemId = question.problemId.toString.toInt,
-            problemTitle = problem.title,
-            question = question.question,
-            complexity = question.complexity
-          )
-        }
-    )
+    Response.json(jsonSerializer.serialize(GetQuestionsResponse(questionDtos)))
   }
 }

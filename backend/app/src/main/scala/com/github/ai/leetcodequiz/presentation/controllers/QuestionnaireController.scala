@@ -5,6 +5,7 @@ import com.github.ai.leetcodequiz.utils.{
   getLastUrlParameter,
   parseUid,
   readBodyAsString,
+  toQuestionnairesItemDto,
   toQuestionnaireItemDto
 }
 import com.github.ai.leetcodequiz.api.response.{
@@ -19,6 +20,7 @@ import com.github.ai.leetcodequiz.data.db.model.{
   QuestionnaireUid
 }
 import com.github.ai.leetcodequiz.data.db.repository.{
+  ProblemRepository,
   QuestionRepository,
   QuestionnaireRepository,
   SubmissionRepository
@@ -28,6 +30,7 @@ import com.github.ai.leetcodequiz.domain.usecases.{
   CreateNewQuestionnaireUseCase,
   SubmitQuestionAnswerUseCase
 }
+import com.github.ai.leetcodequiz.entity.Questionnaire
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.{IO, ZIO}
 import zio.direct.*
@@ -38,6 +41,7 @@ import java.util.Random
 class QuestionnaireController(
   private val createQuestionnaireUseCase: CreateNewQuestionnaireUseCase,
   private val submitAnswerUseCase: SubmitQuestionAnswerUseCase,
+  private val problemRepository: ProblemRepository,
   private val questionnaireRepository: QuestionnaireRepository,
   private val submissionRepository: SubmissionRepository,
   private val questionRepository: QuestionRepository,
@@ -54,18 +58,19 @@ class QuestionnaireController(
       .run
 
     val questionnaire = questionnaireRepository.getByUid(uid).run
-    val questionUidToQuestionMap = questionRepository
-      .getAll()
-      .run
-      .map(q => (q.uid, q))
-      .toMap
+    val questions = questionRepository.getAll().run
+    val problems = problemRepository.getAll().run
 
-    val response = toQuestionnaireItemDto(
+    val questionUidToQuestionMap = questions.map(q => (q.uid, q)).toMap
+    val problemIdToProblemMap = problems.map(p => (p.id, p)).toMap
+
+    val questionnaireDto = toQuestionnaireItemDto(
       questionnaire = questionnaire,
-      questionUidToQuestionMap = questionUidToQuestionMap
+      questionUidToQuestionMap = questionUidToQuestionMap,
+      problemIdToProblemMap = problemIdToProblemMap
     ).run
 
-    Response.json(jsonSerializer.serialize(GetQuestionnaireResponse(response)))
+    Response.json(jsonSerializer.serialize(GetQuestionnaireResponse(questionnaireDto)))
   }
 
   def getQuestionnaires(): IO[DomainError, Response] = defer {
@@ -75,20 +80,21 @@ class QuestionnaireController(
     }
 
     val questionnaires = questionnaireRepository.getAll().run
-    val questionnaire = getActiveQuestionnaire().run
     val questions = questionRepository.getAll().run
+    val questionUidToQuestionMap = questions.map(q => (q.uid, q)).toMap
 
-    val submissions = submissionRepository.getByQuestionnaireUid(questionnaire.uid).run
+    val questionnaireDtos = ZIO
+      .collectAll(
+        questionnaires.map { questionnaire =>
+          toQuestionnairesItemDto(
+            questionnaire,
+            questionUidToQuestionMap
+          )
+        }
+      )
+      .run
 
-    val answeredQuestions = submissions.map(s => s.questionUid).toSet
-    val activeQuestions = questions.filter(q => !answeredQuestions.contains(q.uid))
-
-    val response = createResponse(
-      questionnaires = questionnaires,
-      questions = questions
-    ).run
-
-    Response.json(jsonSerializer.serialize(response))
+    Response.json(jsonSerializer.serialize(GetQuestionnairesResponse(questionnaireDtos)))
   }
 
   def postSubmission(
@@ -121,7 +127,7 @@ class QuestionnaireController(
       .map(q => (q.uid, q))
       .toMap
 
-    val response = toQuestionnaireItemDto(
+    val response = toQuestionnairesItemDto(
       questionnaire = questionnaire,
       questionUidToQuestionMap = questionUidToQuestionMap
     ).run
@@ -146,7 +152,7 @@ class QuestionnaireController(
     (first.uid, second.uid)
   }
 
-  private def getActiveQuestionnaire(): IO[DomainError, QuestionnaireEntity] = defer {
+  private def getActiveQuestionnaire(): IO[DomainError, Questionnaire] = defer {
     val result = questionnaireRepository.getAll().run
     val active = result.find(q => !q.isComplete)
 
@@ -157,14 +163,14 @@ class QuestionnaireController(
   }
 
   private def createResponse(
-    questionnaires: List[QuestionnaireEntity],
+    questionnaires: List[Questionnaire],
     questions: List[QuestionEntity]
   ): IO[DomainError, GetQuestionnairesResponse] = {
     for {
       items <- ZIO
         .collectAll(
           questionnaires.map { questionnaire =>
-            toQuestionnaireItemDto(
+            toQuestionnairesItemDto(
               questionnaire = questionnaire,
               questionUidToQuestionMap = questions.map(q => (q.uid, q)).toMap
             )

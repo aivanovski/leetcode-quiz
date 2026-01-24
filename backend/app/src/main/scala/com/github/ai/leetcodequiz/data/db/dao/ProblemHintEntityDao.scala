@@ -3,10 +3,12 @@ package com.github.ai.leetcodequiz.data.db.dao
 import com.github.ai.leetcodequiz.data.db.execute
 import com.github.ai.leetcodequiz.data.db.model.{ProblemHintEntity, ProblemHintId, ProblemId}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
+import doobie.Update
 import doobie.implicits.*
 import doobie.syntax.ConnectionIOOps
 import doobie.util.transactor.Transactor
 import zio.{IO, Task, ZIO}
+import fs2.Stream
 
 class ProblemHintEntityDao(
   private val transactor: Transactor[Task]
@@ -43,10 +45,20 @@ class ProblemHintEntityDao(
       .execute(transactor)
   }
 
+//  def addBatch(hints: List[ProblemHintEntity]): IO[DatabaseError, List[ProblemHintEntity]] = {
+//    ZIO
+//      .foreach(hints)(add)
+//      .mapError(e => e)
+//  }
+
   def addBatch(hints: List[ProblemHintEntity]): IO[DatabaseError, List[ProblemHintEntity]] = {
-    ZIO
-      .foreach(hints)(add)
-      .mapError(e => e)
+    val sql = "INSERT INTO problem_hints (problem_id, hint) VALUES (?, ?)"
+    Update[(ProblemId, String)](sql)
+      .updateManyWithGeneratedKeys[Long]("id")(hints.map(h => (h.problemId, h.hint)))
+      .compile
+      .toList
+      .map(ids => hints.zip(ids).map { case (hint, id) => hint.copy(id = ProblemHintId(id)) })
+      .execute(transactor)
   }
 
   def deleteByProblemId(problemId: ProblemId): IO[DatabaseError, Unit] = {
