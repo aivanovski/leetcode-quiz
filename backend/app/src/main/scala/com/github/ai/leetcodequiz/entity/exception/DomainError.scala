@@ -71,3 +71,18 @@ class FailedToFindEntityError(
       message = Some(s"Failed to find ${entityType.getSimpleName} by: $criteria"),
       cause = None
     )
+
+class AuthError(
+  message: Option[String],
+  cause: Option[Throwable]
+) extends DomainError(message, cause)
+
+class InvalidAuthTokenError(
+  cause: Option[Throwable] = None
+) extends AuthError(message = Some("Invalid auth token. Expected: Bearer <token>"), cause = cause)
+
+class MissingAuthTokenError
+    extends AuthError(
+      message = Some("Missing authorization header. Expected: Authorization: Bearer <token>"),
+      cause = None
+    )
