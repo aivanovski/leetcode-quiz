@@ -6,7 +6,7 @@ import com.github.ai.leetcodequiz.data.db.model.{UserEntity, UserUid}
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.domain.PasswordService
-import com.github.ai.leetcodequiz.domain.authentication.JwtTokeService
+import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.{readBodyAsString, toUserDto}
 import zio.*
@@ -18,7 +18,7 @@ import java.util.UUID
 class AuthController(
   private val userRepository: UserRepository,
   private val passwordService: PasswordService,
-  private val jwtService: JwtTokeService,
+  private val jwtService: AuthService,
   private val jsonSerializer: JsonSerializer
 ) {
 

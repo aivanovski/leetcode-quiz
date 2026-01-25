@@ -3,19 +3,20 @@ package com.github.ai.leetcodequiz.domain.authentication
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.github.ai.leetcodequiz.data.db.model.UserUid
+import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.entity.AppEnvironment.{DEBUG, PROD}
-import com.github.ai.leetcodequiz.entity.exception.DomainError
+import com.github.ai.leetcodequiz.entity.exception.{DomainError, InvalidAuthTokenError}
 import com.github.ai.leetcodequiz.entity.{CliArguments, JwtData}
 import zio.*
 import zio.direct.*
 
 import java.time.Instant
 import java.util.{Date, UUID}
-import scala.concurrent.duration.DurationConversions.*
 
-class JwtTokeService(
+class AuthService(
   private val jwtData: JwtData,
-  private val appArguments: CliArguments
+  private val appArguments: CliArguments,
+  private val userRepository: UserRepository
 ) {
 
   def createToken(userUid: UserUid): String = {
@@ -47,16 +48,19 @@ class JwtTokeService(
 
     val decodedToken = ZIO
       .attempt(verifier.verify(token))
-      .mapError(DomainError(_))
+      .mapError(error => InvalidAuthTokenError(cause = Some(error)))
       .run
 
     val subject = Option(decodedToken.getSubject).getOrElse("")
     val userId = ZIO
       .attempt(UserUid(UUID.fromString(subject)))
-      .mapError(DomainError(_))
+      .mapError(error => InvalidAuthTokenError(cause = Some(error)))
       .run
 
-    // TODO: check is userId is a valid user
+    userRepository
+      .getByUid(userId)
+      .mapError(error => InvalidAuthTokenError(cause = Some(error)))
+      .run
 
     userId
   }

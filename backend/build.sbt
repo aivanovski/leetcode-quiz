@@ -51,7 +51,8 @@ lazy val app = project
         Wart.MutableDataStructures,
         Wart.EnumValueOf,
         Wart.SeqApply,
-        Wart.OptionPartial
+        Wart.OptionPartial,
+        Wart.IsInstanceOf
       ),
     assembly / mainClass := Some("com.github.ai.leetcodequiz.Main"),
     assembly / assemblyJarName := "leetcode-quiz-backend.jar",

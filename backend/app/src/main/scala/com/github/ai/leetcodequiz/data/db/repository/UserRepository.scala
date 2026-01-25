@@ -7,6 +7,7 @@ class UserRepository(
   private val dao: UserEntityDao
 ) {
 
+  def getByUid(uid: UserUid) = dao.getByUid(uid)
   def findByUid(uid: UserUid) = dao.findByUid(uid)
   def findByEmail(email: String) = dao.findByEmail(email)
   def add(user: UserEntity) = dao.add(user)

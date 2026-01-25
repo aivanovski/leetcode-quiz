@@ -20,7 +20,7 @@ import com.github.ai.leetcodequiz.data.db.repository.{
 }
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
 import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser}
-import com.github.ai.leetcodequiz.domain.authentication.{AccessResolver, JwtTokeService}
+import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob}
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
@@ -65,7 +65,7 @@ object Layers {
 
   // Services
   val passwordService = ZLayer.succeed(PasswordService())
-  val jwtTokeService = ZLayer.fromFunction(JwtTokeService(_, _))
+  val jwtTokeService = ZLayer.fromFunction(AuthService(_, _, _))
   val startupService = ZLayer.succeed(StartupService())
   val scheduledJobService = ZLayer.succeed(ScheduledJobService())
 
