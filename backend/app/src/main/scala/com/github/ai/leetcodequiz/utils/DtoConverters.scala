@@ -55,7 +55,9 @@ def toQuestionnaireStatsDto(stats: QuestionnaireStats) =
   QuestionnaireStatsDto(
     totalQuestions = stats.answeredQuestions + stats.notAnsweredQuestions,
     answered = stats.answeredQuestions,
-    notAnswered = stats.notAnsweredQuestions
+    notAnswered = stats.notAnsweredQuestions,
+    answeredPositively = stats.answeredPositively,
+    answeredNegatively = stats.answeredNegatively
   )
 
 def toQuestionItemDtos(questions: List[QuestionEntity]) =

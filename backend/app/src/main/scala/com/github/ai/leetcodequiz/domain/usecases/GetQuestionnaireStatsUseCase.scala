@@ -29,7 +29,9 @@ class GetQuestionnaireStatsUseCase(
 
     QuestionnaireStats(
       answeredQuestions = answeredQuestions.size,
-      notAnsweredQuestions = notAnsweredQuestions.size
+      notAnsweredQuestions = notAnsweredQuestions.size,
+      answeredPositively = submissions.count(s => s.answer == 1),
+      answeredNegatively = submissions.count(s => s.answer == -1)
     )
   }
 }
