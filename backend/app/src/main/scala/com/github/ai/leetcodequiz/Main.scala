@@ -7,7 +7,6 @@ import com.github.ai.leetcodequiz.presentation.routes.{
   ProblemRoutes,
   QuestionRoutes,
   QuestionnaireRoutes,
-  UnansweredQuestionnaireRoutes,
   AuthRoutes
 }
 import com.github.ai.leetcodequiz.data.db.DoobieTransactor
@@ -26,7 +25,6 @@ object Main extends ZIOAppDefault {
     (ProblemRoutes.routes()
       ++ QuestionRoutes.routes()
       ++ QuestionnaireRoutes.routes()
-      ++ UnansweredQuestionnaireRoutes.routes()
       ++ AuthRoutes.routes())
       @@ RequestLogger.requestLogger
 
@@ -95,7 +93,7 @@ object Main extends ZIOAppDefault {
         Layers.problemController,
         Layers.questionController,
         Layers.questionnaireController,
-        Layers.unansweredQuestionnaireController,
+        Layers.answerController,
         Layers.userController,
 
         // Scheduled jobs
@@ -113,7 +111,6 @@ object Main extends ZIOAppDefault {
         Layers.problemRepository,
         Layers.questionRepository,
         Layers.questionnaireRepository,
-        Layers.submissionRepository,
         Layers.userRepository,
         Layers.getQuestionnaireStatsUseCase,
 
@@ -123,7 +120,7 @@ object Main extends ZIOAppDefault {
         Layers.problemHintDao,
         Layers.questionDao,
         Layers.questionnaireDao,
-        Layers.submissionDao,
+        Layers.answerDao,
         Layers.userDao,
         Layers.nextQuestionDao,
 

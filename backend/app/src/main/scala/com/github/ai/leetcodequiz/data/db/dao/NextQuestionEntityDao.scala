@@ -50,11 +50,8 @@ class NextQuestionEntityDao(
       .execute(transactor)
   }
 
-  def add(entities: List[NextQuestionEntity]): IO[DatabaseError, List[NextQuestionEntity]] = {
-    ZIO.collectAll(
-      entities.map(entity => add(entity))
-    )
-  }
+  def add(entities: List[NextQuestionEntity]): IO[DatabaseError, List[NextQuestionEntity]] =
+    ZIO.collectAll(entities.map(entity => add(entity)))
 
   def add(entity: NextQuestionEntity): IO[DatabaseError, NextQuestionEntity] = {
     sql"""

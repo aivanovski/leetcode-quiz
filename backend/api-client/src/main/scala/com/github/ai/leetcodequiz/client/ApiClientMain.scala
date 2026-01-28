@@ -20,7 +20,8 @@ object ApiClientMain extends ZIOAppDefault {
       |questions                                 Get list of questions
       |questionnaires                            Get list of questionnaires
       |unanswered QUESTIONNAIRE_ID               Get unanswered questions for questionnaire
-      |answer QUESTIONNAIRE_ID                   Send answer to questionnaire with QUESTIONNAIRE_ID
+      |answer QUESTIONNAIRE_ID                   Send positive answer to first question in questionnaire
+      |answer TIMES QUESTIONNAIRE_ID             Send positive answer to first question in questionnaire number of times
       |help                                      Print help
       |""".stripMargin
 
@@ -74,6 +75,8 @@ object ApiClientMain extends ZIOAppDefault {
       case s"questionnaires" => api.getAuthToken().flatMap(t => api.getQuestionnaires(t)).run
       case s"unanswered $questionnaireId" =>
         api.getAuthToken().flatMap(t => api.getUnanswered(questionnaireId, t)).run
+      case s"answer $times $questionnaireId" =>
+        api.getAuthToken().flatMap(t => answerNTimes(api, questionnaireId, times.toInt, t)).run
       case s"answer $questionnaireId" =>
         api.getAuthToken().flatMap(t => answer(api, questionnaireId, t)).run
       case _ => ZIO.fail(InvalidCliArgumentException(s"Illegal arguments: $arguments")).run
@@ -86,18 +89,59 @@ object ApiClientMain extends ZIOAppDefault {
 
   private def answer(
     api: ApiClient,
-    questionnareId: String,
+    questionnaireId: String,
     authToken: String
   ): ApiResponse = defer {
-    val questionId = api.getFirstQuestionIdFromQuestionnaire(questionnareId, authToken).run
+    val questionnaire = api.getQuestionnaireItem(questionnaireId, authToken).run
+
+    val answeredIds = questionnaire.answers
+      .filter(answer => answer.answer == 1 || answer.answer == -1)
+      .map(_.id)
+      .toSet
+
+    val notAnsweredIds = questionnaire.questions
+      .filter(q => !answeredIds.contains(q.id))
+      .map(_.id)
 
     api
       .postAnswer(
-        questionnaireId = questionnareId,
-        questionId = questionId,
+        questionnaireId = questionnaireId,
+        questionId = notAnsweredIds.head,
         answer = 1,
         authToken = authToken
       )
       .run
+  }
+
+  private def answerNTimes(
+    api: ApiClient,
+    questionnaireId: String,
+    times: Int,
+    authToken: String
+  ): ApiResponse = defer {
+    val questionnaire = api.getQuestionnaireItem(questionnaireId, authToken).run
+
+    val answeredIds = questionnaire.answers
+      .filter(answer => answer.answer == 1 || answer.answer == -1)
+      .map(_.id)
+      .toSet
+
+    val notAnsweredIds = questionnaire.questions
+      .filter(q => !answeredIds.contains(q.id))
+      .map(_.id)
+      .take(times)
+
+    val responses = ZIO.collectAll {
+      notAnsweredIds.map { questionId =>
+        api.postAnswer(
+          questionnaireId = questionnaireId,
+          questionId = questionId,
+          answer = 1,
+          authToken = authToken
+        )
+      }
+    }.run
+
+    responses.last
   }
 }

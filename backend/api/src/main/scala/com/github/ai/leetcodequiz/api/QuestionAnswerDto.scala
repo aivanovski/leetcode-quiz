@@ -2,9 +2,8 @@ package com.github.ai.leetcodequiz.api
 
 import zio.json.{JsonDecoder, JsonEncoder}
 
-case class QuestionnairesItemDto(
+case class QuestionAnswerDto(
   id: String,
-  isComplete: Boolean,
-  questions: List[String]
+  answer: Int
 ) derives JsonEncoder,
       JsonDecoder

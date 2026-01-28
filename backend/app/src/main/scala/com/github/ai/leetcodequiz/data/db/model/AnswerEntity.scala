@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.data.db.model
 
-final case class SubmissionEntity(
-  uid: SubmissionUid,
+case class AnswerEntity(
+  uid: AnswerUid,
   questionnaireUid: QuestionnaireUid,
   questionUid: QuestionUid,
   answer: Int

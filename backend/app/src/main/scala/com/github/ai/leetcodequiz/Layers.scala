@@ -1,13 +1,13 @@
 package com.github.ai.leetcodequiz
 
 import com.github.ai.leetcodequiz.data.db.dao.{
+  AnswerEntityDao,
   DataSyncEntityDao,
   NextQuestionEntityDao,
   ProblemEntityDao,
   ProblemHintEntityDao,
   QuestionEntityDao,
   QuestionnaireEntityDao,
-  SubmissionEntityDao,
   UserEntityDao
 }
 import com.github.ai.leetcodequiz.data.db.repository.{
@@ -15,7 +15,6 @@ import com.github.ai.leetcodequiz.data.db.repository.{
   ProblemRepository,
   QuestionRepository,
   QuestionnaireRepository,
-  SubmissionRepository,
   UserRepository
 }
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
@@ -35,11 +34,11 @@ import com.github.ai.leetcodequiz.domain.usecases.{
 import com.github.ai.leetcodequiz.domain.{PasswordService, ScheduledJobService, StartupService}
 import com.github.ai.leetcodequiz.entity.JwtData
 import com.github.ai.leetcodequiz.presentation.controllers.{
+  AnswerController,
   AuthController,
   ProblemController,
   QuestionController,
-  QuestionnaireController,
-  UnasweredQuestionnareController
+  QuestionnaireController
 }
 import zio.{ZIO, ZLayer}
 
@@ -51,7 +50,7 @@ object Layers {
   val problemHintDao = ZLayer.fromFunction(ProblemHintEntityDao(_))
   val questionDao = ZLayer.fromFunction(QuestionEntityDao(_))
   val questionnaireDao = ZLayer.fromFunction(QuestionnaireEntityDao(_))
-  val submissionDao = ZLayer.fromFunction(SubmissionEntityDao(_))
+  val answerDao = ZLayer.fromFunction(AnswerEntityDao(_))
   val userDao = ZLayer.fromFunction(UserEntityDao(_))
   val nextQuestionDao = ZLayer.fromFunction(NextQuestionEntityDao(_))
 
@@ -59,8 +58,7 @@ object Layers {
   val dataSyncRepository = ZLayer.fromFunction(DataSyncRepository(_))
   val problemRepository = ZLayer.fromFunction(ProblemRepository(_, _))
   val questionRepository = ZLayer.fromFunction(QuestionRepository(_))
-  val questionnaireRepository = ZLayer.fromFunction(QuestionnaireRepository(_, _))
-  val submissionRepository = ZLayer.fromFunction(SubmissionRepository(_))
+  val questionnaireRepository = ZLayer.fromFunction(QuestionnaireRepository(_, _, _))
   val userRepository = ZLayer.fromFunction(UserRepository(_))
 
   // Services
@@ -76,19 +74,18 @@ object Layers {
   // Use cases
   val cloneGithubRepositoryUseCase = ZLayer.fromFunction(CloneGithubRepositoryUseCase(_))
   val createNewQuestionnaireUseCase = ZLayer.fromFunction(CreateNewQuestionnaireUseCase(_, _, _))
-  val submitQuestionAnswerUseCase = ZLayer.fromFunction(SubmitQuestionAnswerUseCase(_, _, _, _, _))
+  val submitQuestionAnswerUseCase = ZLayer.fromFunction(SubmitQuestionAnswerUseCase(_, _, _, _))
   val setupTestDataUseCase = ZLayer.fromFunction(SetupTestDataUseCase(_, _))
   val validateEmailUseCase = ZLayer.succeed(ValidateEmailUseCase())
-  val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _, _))
+  val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _))
   val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_, _, _))
-  val getQuestionnaireStatsUseCase = ZLayer.fromFunction(GetQuestionnaireStatsUseCase(_, _, _))
+  val getQuestionnaireStatsUseCase = ZLayer.fromFunction(GetQuestionnaireStatsUseCase(_, _))
 
   // Controllers
   val problemController = ZLayer.fromFunction(ProblemController(_, _))
   val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
-  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _, _))
-  val unansweredQuestionnaireController =
-    ZLayer.fromFunction(UnasweredQuestionnareController(_, _, _, _, _))
+  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _))
+  val answerController = ZLayer.fromFunction(AnswerController(_, _, _, _))
   val userController = ZLayer.fromFunction(AuthController(_, _, _, _))
 
   // Other
