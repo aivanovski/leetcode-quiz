@@ -4,6 +4,7 @@ import com.github.ai.leetcodequiz.data.db.model.{QuestionUid, QuestionnaireUid}
 
 case class Questionnaire(
   uid: QuestionnaireUid,
-  nextQuestions: List[QuestionUid],
+  questions: List[QuestionUid],
+  answers: List[Answer],
   isComplete: Boolean
 )

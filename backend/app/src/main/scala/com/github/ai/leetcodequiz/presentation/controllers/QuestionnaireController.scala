@@ -17,8 +17,7 @@ import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, Qu
 import com.github.ai.leetcodequiz.data.db.repository.{
   ProblemRepository,
   QuestionRepository,
-  QuestionnaireRepository,
-  SubmissionRepository
+  QuestionnaireRepository
 }
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.domain.usecases.{
@@ -40,7 +39,6 @@ class QuestionnaireController(
   private val getStatsUseCase: GetQuestionnaireStatsUseCase,
   private val problemRepository: ProblemRepository,
   private val questionnaireRepository: QuestionnaireRepository,
-  private val submissionRepository: SubmissionRepository,
   private val questionRepository: QuestionRepository,
   private val jsonSerializer: JsonSerializer
 ) {
@@ -57,16 +55,13 @@ class QuestionnaireController(
     val questionnaire = questionnaireRepository.getByUid(uid).run
     val stats = getStatsUseCase.getStats(uid).run
     val questions = questionRepository.getAll().run
-    val problems = problemRepository.getAll().run
 
     val questionUidToQuestionMap = questions.map(q => (q.uid, q)).toMap
-    val problemIdToProblemMap = problems.map(p => (p.id, p)).toMap
 
     val questionnaireDto = toQuestionnaireItemDto(
       questionnaire = questionnaire,
       stats = stats,
-      questionUidToQuestionMap = questionUidToQuestionMap,
-      problemIdToProblemMap = problemIdToProblemMap
+      questionUidToQuestionMap = questionUidToQuestionMap
     ).run
 
     Response.json(jsonSerializer.serialize(GetQuestionnaireResponse(questionnaireDto)))
@@ -96,57 +91,12 @@ class QuestionnaireController(
     val questionnaireDtos = ZIO
       .collectAll(
         questionnairesAndStats.map { (questionnaire, stats) =>
-          toQuestionnairesItemDto(
-            questionnaire,
-            stats,
-            questionUidToQuestionMap
-          )
+          toQuestionnairesItemDto(questionnaire)
         }
       )
       .run
 
     Response.json(jsonSerializer.serialize(GetQuestionnairesResponse(questionnaireDtos)))
-  }
-
-  def postSubmission(
-    request: Request
-  ): IO[DomainError, Response] = defer {
-    val body = request
-      .readBodyAsString()
-      .flatMap { text => jsonSerializer.deserialize[PostSubmissionRequest](text) }
-      .run
-
-    val questionnaireUid = request
-      .getLastUrlParameter()
-      .flatMap(str => str.parseUid())
-      .map(QuestionnaireUid(_))
-      .run
-
-    val questionUid = body.questionId.parseUid().map(QuestionUid(_)).run
-
-    val questionnaire = submitAnswerUseCase
-      .submitAnswer(
-        questionnaireUid = questionnaireUid,
-        questionUid = questionUid,
-        answer = body.answer
-      )
-      .run
-
-    val stats = getStatsUseCase.getStats(questionnaireUid).run
-
-    val questionUidToQuestionMap = questionRepository
-      .getAll()
-      .run
-      .map(q => (q.uid, q))
-      .toMap
-
-    val response = toQuestionnairesItemDto(
-      questionnaire = questionnaire,
-      stats = stats,
-      questionUidToQuestionMap = questionUidToQuestionMap
-    ).run
-
-    Response.json(jsonSerializer.serialize(PostSubmissionResponse(response)))
   }
 
   private def getNextQuestions(

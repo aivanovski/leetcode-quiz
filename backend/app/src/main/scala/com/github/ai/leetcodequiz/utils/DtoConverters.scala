@@ -3,6 +3,7 @@ package com.github.ai.leetcodequiz.utils
 import com.github.ai.leetcodequiz.api.{
   ProblemItemDto,
   ProblemsItemDto,
+  QuestionAnswerDto,
   QuestionItemDto,
   QuestionnaireItemDto,
   QuestionnaireStatsDto,
@@ -74,49 +75,33 @@ def toQuestionItemDto(question: QuestionEntity) =
 def toQuestionnaireItemDto(
   questionnaire: Questionnaire,
   stats: QuestionnaireStats,
-  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity],
-  problemIdToProblemMap: Map[ProblemId, Problem]
+  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
 ): IO[DomainError, QuestionnaireItemDto] = defer {
   val questions = resolveQuestions(
-    uids = questionnaire.nextQuestions,
+    uids = questionnaire.questions,
     questionUidToQuestionMap = questionUidToQuestionMap
   ).run
 
   val questionDtos = toQuestionItemDtos(questions)
 
-  val problems = ZIO
-    .collectAll(questions.map { question =>
-      resolveProblem(question.problemId, problemIdToProblemMap)
-    })
-    .map { problems => problems.map(problem => toProblemItemDto(problem)) }
-    .run
-
   QuestionnaireItemDto(
     id = questionnaire.uid.toString,
     isComplete = questionnaire.isComplete,
-    nextQuestions = questionDtos,
-    problems = problems,
+    questions = questionDtos,
+    answers = questionnaire.answers.map { answer =>
+      QuestionAnswerDto(answer.uid.toString, answer.answer)
+    },
     stats = toQuestionnaireStatsDto(stats)
   )
 }
 
 def toQuestionnairesItemDto(
-  questionnaire: Questionnaire,
-  stats: QuestionnaireStats,
-  questionUidToQuestionMap: Map[QuestionUid, QuestionEntity]
+  questionnaire: Questionnaire
 ): IO[DomainError, QuestionnairesItemDto] = defer {
-  val questions = resolveQuestions(
-    uids = questionnaire.nextQuestions,
-    questionUidToQuestionMap = questionUidToQuestionMap
-  )
-    .map(questions => toQuestionItemDtos(questions))
-    .run
-
   QuestionnairesItemDto(
     id = questionnaire.uid.toString,
     isComplete = questionnaire.isComplete,
-    nextQuestions = questions,
-    stats = toQuestionnaireStatsDto(stats)
+    questions = questionnaire.questions.map(_.toString)
   )
 }
 

@@ -1,7 +1,10 @@
 package com.github.ai.leetcodequiz.presentation.routes
 
 import com.github.ai.leetcodequiz.domain.authentication.AuthHandler.authHandler
-import com.github.ai.leetcodequiz.presentation.controllers.QuestionnaireController
+import com.github.ai.leetcodequiz.presentation.controllers.{
+  AnswerController,
+  QuestionnaireController
+}
 import com.github.ai.leetcodequiz.utils.transformError
 import zio.ZIO
 import zio.http.{Method, Request, Routes, handler, string}
@@ -18,7 +21,7 @@ object QuestionnaireRoutes {
     } @@ authHandler,
     Method.POST / "api" / "questionnaire" / string("questionnaireId") -> handler {
       (request: Request) =>
-        ZIO.serviceWithZIO[QuestionnaireController](_.postSubmission(request).transformError())
+        ZIO.serviceWithZIO[AnswerController](_.postAnswer(request).transformError())
     } @@ authHandler
   )
 }

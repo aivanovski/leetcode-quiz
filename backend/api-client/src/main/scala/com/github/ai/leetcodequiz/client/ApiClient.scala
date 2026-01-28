@@ -1,7 +1,12 @@
 package com.github.ai.leetcodequiz.client
 
+import com.github.ai.leetcodequiz.api.{QuestionAnswerDto, QuestionnaireItemDto}
 import com.github.ai.leetcodequiz.api.request.{LoginRequest, PostSubmissionRequest, SignupRequest}
-import com.github.ai.leetcodequiz.api.response.{LoginResponse, PostSubmissionResponse}
+import com.github.ai.leetcodequiz.api.response.{
+  GetQuestionnaireResponse,
+  LoginResponse,
+  PostSubmissionResponse
+}
 import zio.*
 import zio.http.*
 import zio.json.*
@@ -41,18 +46,18 @@ class ApiClient(
       }
       .map(response => response.token)
 
-  def getFirstQuestionIdFromQuestionnaire(
+  def getQuestionnaireItem(
     questionnaireId: String,
     authToken: String
-  ): ZIO[Scope, Throwable, String] =
+  ): ZIO[Scope, Throwable, QuestionnaireItemDto] =
     getQuestionnaire(id = questionnaireId, authToken = authToken)
       .flatMap(_.body.asString)
       .flatMap { json =>
         ZIO
-          .fromEither(json.fromJson[PostSubmissionResponse])
+          .fromEither(json.fromJson[GetQuestionnaireResponse])
           .mapError(e => Exception(s"Unable to parse json response: $e"))
       }
-      .map(response => response.questionnaire.nextQuestions.collectFirst(_.id).getOrElse(""))
+      .map(response => response.questionnaire)
 
   def login(
     email: String = DefaultCredentials.DefaultEmail,

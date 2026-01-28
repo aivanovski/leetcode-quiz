@@ -40,7 +40,8 @@ class CreateNewQuestionnaireUseCase(
         Questionnaire(
           uid = questionnaireUid,
           isComplete = false,
-          nextQuestions = nextQuestions
+          questions = nextQuestions,
+          answers = List.empty
         )
       )
       .run

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS questionnaires (
     is_complete INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS submissions (
+CREATE TABLE IF NOT EXISTS answers (
     uid TEXT PRIMARY KEY,
     questionnaire_uid TEXT NOT NULL,
     question_uid TEXT NOT NULL,

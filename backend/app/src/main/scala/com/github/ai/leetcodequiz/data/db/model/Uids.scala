@@ -10,7 +10,7 @@ opaque type ProblemId = Long
 
 opaque type QuestionnaireUid = UUID
 opaque type NextQuestionUid = UUID
-opaque type SubmissionUid = UUID
+opaque type AnswerUid = UUID
 opaque type ProblemHintId = Long
 opaque type UserUid = UUID
 
@@ -28,11 +28,11 @@ object NextQuestionUid {
     Meta[String].timap(str => NextQuestionUid(UUID.fromString(str)))(_.toString)
 }
 
-object SubmissionUid {
-  def apply(uid: UUID): SubmissionUid = uid
+object AnswerUid {
+  def apply(uid: UUID): AnswerUid = uid
 
-  given Meta[SubmissionUid] =
-    Meta[String].timap(str => SubmissionUid(UUID.fromString(str)))(_.toString)
+  given Meta[AnswerUid] =
+    Meta[String].timap(str => AnswerUid(UUID.fromString(str)))(_.toString)
 }
 
 object SyncUid {
