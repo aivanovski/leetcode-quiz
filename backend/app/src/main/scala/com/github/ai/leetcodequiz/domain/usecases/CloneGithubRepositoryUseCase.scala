@@ -1,7 +1,5 @@
 package com.github.ai.leetcodequiz.domain.usecases
 
-import com.github.ai.leetcodequiz.entity.toRelativePath
-import com.github.ai.leetcodequiz.entity.toFile
 import com.github.ai.leetcodequiz.data.file.FileSystemProvider
 import com.github.ai.leetcodequiz.entity.RelativePath
 import com.github.ai.leetcodequiz.entity.exception.{DomainError, FileSystemError}

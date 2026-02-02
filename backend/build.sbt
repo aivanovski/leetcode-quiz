@@ -52,13 +52,15 @@ lazy val app = project
         Wart.EnumValueOf,
         Wart.SeqApply,
         Wart.OptionPartial,
-        Wart.IsInstanceOf
+        Wart.IsInstanceOf,
+        Wart.Recursion
       ),
     assembly / mainClass := Some("com.github.ai.leetcodequiz.Main"),
     assembly / assemblyJarName := "leetcode-quiz-backend.jar",
     libraryDependencies ++= Seq(
       // Testing
       "org.scalameta" %% "munit" % "1.0.0" % Test,
+      "dev.zio" %% "zio-test" % zioVersion % Test,
 
       // ZIO
       "dev.zio" %% "zio" % zioVersion,

@@ -88,6 +88,7 @@ object Main extends ZIOAppDefault {
         Layers.setupTestDataUseCase,
         Layers.selectNextQuestionsUseCase,
         Layers.getRemainedQuestionsUseCase,
+        Layers.getQuestionnaireStatsUseCase,
 
         // Controllers
         Layers.problemController,
@@ -99,6 +100,7 @@ object Main extends ZIOAppDefault {
         // Scheduled jobs
         Layers.syncProblemsJob,
         Layers.syncQuestionsJob,
+        Layers.syncSolutionsJob,
 
         // Services
         Layers.startupService,
@@ -112,7 +114,7 @@ object Main extends ZIOAppDefault {
         Layers.questionRepository,
         Layers.questionnaireRepository,
         Layers.userRepository,
-        Layers.getQuestionnaireStatsUseCase,
+        Layers.solutionRepository,
 
         // Dao
         Layers.dataSyncDao,
@@ -123,6 +125,7 @@ object Main extends ZIOAppDefault {
         Layers.answerDao,
         Layers.userDao,
         Layers.nextQuestionDao,
+        Layers.solutionDao,
 
         // Others
         Layers.jsonSerializer,

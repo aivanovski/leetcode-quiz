@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS data_syncs (
     uid TEXT PRIMARY KEY,
     sync_type VARCHAR(16) NOT NULL,
-    timestamp TEXT NOT NULL
+    timestamp TEXT NOT NULL,
+    timestamp_value INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -55,4 +56,12 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS solutions (
+    uid TEXT PRIMARY KEY,
+    problem_id INTEGER NOT NULL,
+    path TEXT,
+    content TEXT NOT NULL,
+    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
 );

@@ -8,6 +8,7 @@ import com.github.ai.leetcodequiz.api.{
   QuestionnaireItemDto,
   QuestionnaireStatsDto,
   QuestionnairesItemDto,
+  SolutionItemDto,
   UserDto as UserDtoSc
 }
 import com.github.ai.leetcodequiz.data.db.model.{
@@ -15,14 +16,28 @@ import com.github.ai.leetcodequiz.data.db.model.{
   QuestionEntity,
   QuestionUid,
   QuestionnaireEntity,
+  SolutionEntity,
   UserEntity
 }
 import com.github.ai.leetcodequiz.entity.{Problem, Questionnaire, QuestionnaireStats}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
 import zio.direct.*
+import zio.http.Charsets
 
-def toProblemItemDto(problem: Problem) =
+import java.util.Base64
+
+def toSolutionItemDto(
+  solution: SolutionEntity
+) =
+  SolutionItemDto(
+    contentBase64 = Base64.getEncoder.encodeToString(solution.content.getBytes(Charsets.Utf8))
+  )
+
+def toProblemItemDto(
+  problem: Problem,
+  solutions: List[SolutionEntity]
+) =
   ProblemItemDto(
     id = problem.id.toString.toInt,
     title = problem.title,
@@ -31,6 +46,7 @@ def toProblemItemDto(problem: Problem) =
     categoryTitle = problem.category,
     difficulty = problem.difficulty.toString,
     url = problem.url,
+    solutions = solutions.map(s => toSolutionItemDto(s)),
     likes = problem.likes,
     dislikes = problem.dislikes
   )

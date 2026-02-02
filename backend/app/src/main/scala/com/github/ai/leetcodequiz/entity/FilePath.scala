@@ -1,6 +1,7 @@
 package com.github.ai.leetcodequiz.entity
 
 import java.io.File
+import java.nio.file.{Files, LinkOption, Path, Paths}
 
 sealed class FilePath(
   val path: String
@@ -14,19 +15,28 @@ sealed class FilePath(
 
     path.substring(lastSeparatorIdx + 1, path.length)
   }
+
+  override def toString: String = path
 }
 
 case class AbsolutePath(
   basePath: String,
   relativePath: String
-) extends FilePath(path = basePath.stripSuffix("/") + "/" + relativePath.stripPrefix("/"))
+) extends FilePath(path = basePath.stripSuffix("/") + "/" + relativePath.stripPrefix("/")) {
+
+  def toRelativePath(): RelativePath = RelativePath(relativePath)
+  def toFile(): File = File(path)
+  def toPath(): Path = Paths.get(path)
+  def isDirectory(): Boolean = Files.isDirectory(toPath())
+  def exists(): Boolean = Files.exists(toPath(), LinkOption.NOFOLLOW_LINKS)
+}
 
 case class RelativePath(
   relativePath: String
-) extends FilePath(path = relativePath)
+) extends FilePath(path = relativePath) {
 
-extension (file: AbsolutePath) {
-  def toRelativePath(): RelativePath = RelativePath(file.relativePath)
-
-  def toFile(): File = File(file.basePath + "/" + file.relativePath)
+  def relativize(child: RelativePath): RelativePath = {
+    val path = child.relativePath.stripPrefix(this.relativePath)
+    RelativePath(path)
+  }
 }

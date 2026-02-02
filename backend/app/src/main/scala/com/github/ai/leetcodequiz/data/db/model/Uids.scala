@@ -13,6 +13,7 @@ opaque type NextQuestionUid = UUID
 opaque type AnswerUid = UUID
 opaque type ProblemHintId = Long
 opaque type UserUid = UUID
+opaque type SolutionUid = UUID
 
 object QuestionnaireUid {
   def apply(uid: UUID): QuestionnaireUid = uid
@@ -51,6 +52,7 @@ object ProblemId {
   def apply(id: Long): ProblemId = id
 
   given Meta[ProblemId] = Meta[Long].timap(ProblemId(_))(identity)
+  given Ordering[ProblemId] = Ordering.Long
 }
 
 object ProblemHintId {
@@ -64,4 +66,11 @@ object UserUid {
 
   given Meta[UserUid] =
     Meta[String].timap(str => UserUid(UUID.fromString(str)))(_.toString)
+}
+
+object SolutionUid {
+  def apply(uid: UUID): SolutionUid = uid
+
+  given Meta[SolutionUid] =
+    Meta[String].timap(str => SolutionUid(UUID.fromString(str)))(_.toString)
 }
