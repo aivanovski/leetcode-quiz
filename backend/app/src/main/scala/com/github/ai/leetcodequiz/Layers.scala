@@ -8,6 +8,7 @@ import com.github.ai.leetcodequiz.data.db.dao.{
   ProblemHintEntityDao,
   QuestionEntityDao,
   QuestionnaireEntityDao,
+  SolutionEntityDao,
   UserEntityDao
 }
 import com.github.ai.leetcodequiz.data.db.repository.{
@@ -15,12 +16,13 @@ import com.github.ai.leetcodequiz.data.db.repository.{
   ProblemRepository,
   QuestionRepository,
   QuestionnaireRepository,
+  SolutionRepository,
   UserRepository
 }
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
 import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser}
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
-import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob}
+import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob, SyncSolutionsJob}
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
   CreateNewQuestionnaireUseCase,
@@ -53,6 +55,7 @@ object Layers {
   val answerDao = ZLayer.fromFunction(AnswerEntityDao(_))
   val userDao = ZLayer.fromFunction(UserEntityDao(_))
   val nextQuestionDao = ZLayer.fromFunction(NextQuestionEntityDao(_))
+  val solutionDao = ZLayer.fromFunction(SolutionEntityDao(_))
 
   // Repositories
   val dataSyncRepository = ZLayer.fromFunction(DataSyncRepository(_))
@@ -60,16 +63,18 @@ object Layers {
   val questionRepository = ZLayer.fromFunction(QuestionRepository(_))
   val questionnaireRepository = ZLayer.fromFunction(QuestionnaireRepository(_, _, _))
   val userRepository = ZLayer.fromFunction(UserRepository(_))
+  val solutionRepository = ZLayer.fromFunction(SolutionRepository(_))
 
   // Services
   val passwordService = ZLayer.succeed(PasswordService())
   val jwtTokeService = ZLayer.fromFunction(AuthService(_, _, _))
   val startupService = ZLayer.succeed(StartupService())
-  val scheduledJobService = ZLayer.succeed(ScheduledJobService())
+  val scheduledJobService = ZLayer.fromFunction(ScheduledJobService(_))
 
   // Scheduled jobs
   val syncProblemsJob = ZLayer.fromFunction(SyncProblemsJob(_, _, _, _, _))
   val syncQuestionsJob = ZLayer.fromFunction(SyncQuestionsJob(_, _, _, _, _))
+  val syncSolutionsJob = ZLayer.fromFunction(SyncSolutionsJob(_, _, _, _, _))
 
   // Use cases
   val cloneGithubRepositoryUseCase = ZLayer.fromFunction(CloneGithubRepositoryUseCase(_))
@@ -82,7 +87,7 @@ object Layers {
   val getQuestionnaireStatsUseCase = ZLayer.fromFunction(GetQuestionnaireStatsUseCase(_, _))
 
   // Controllers
-  val problemController = ZLayer.fromFunction(ProblemController(_, _))
+  val problemController = ZLayer.fromFunction(ProblemController(_, _, _))
   val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
   val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _))
   val answerController = ZLayer.fromFunction(AnswerController(_, _, _, _))

@@ -9,6 +9,8 @@ import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import zio.{IO, Task}
 
+import java.time.ZoneOffset
+
 class DataSyncEntityDao(
   private val transactor: Transactor[Task]
 ) {
@@ -18,7 +20,7 @@ class DataSyncEntityDao(
         SELECT uid, sync_type, timestamp
         FROM data_syncs
         WHERE sync_type = $syncType
-        ORDER BY timestamp DESC
+        ORDER BY timestamp_value DESC
         LIMIT 1
       """
       .query[DataSyncEntity]
@@ -27,9 +29,14 @@ class DataSyncEntityDao(
   }
 
   def add(sync: DataSyncEntity): IO[DatabaseError, DataSyncEntity] = {
+    val milliseconds = sync.timestamp
+      .atZone(ZoneOffset.UTC)
+      .toInstant
+      .toEpochMilli
+
     sql"""
-        INSERT INTO data_syncs (uid, sync_type, timestamp)
-        VALUES (${sync.uid.toString}, ${sync.syncType}, ${sync.timestamp})
+        INSERT INTO data_syncs (uid, sync_type, timestamp, timestamp_value)
+        VALUES (${sync.uid.toString}, ${sync.syncType}, ${sync.timestamp}, $milliseconds)
       """.update.run
       .map(_ => sync)
       .execute(transactor)

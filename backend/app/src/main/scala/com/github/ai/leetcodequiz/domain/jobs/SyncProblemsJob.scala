@@ -15,66 +15,55 @@ import java.util.UUID
 
 class SyncProblemsJob(
   private val fileSystemProvider: FileSystemProvider,
-  private val problemSyncRepository: DataSyncRepository,
+  private val syncRepository: DataSyncRepository,
   private val problemRepository: ProblemRepository,
   private val problemParser: ProblemParser,
   private val cloneRepositoryUseCase: CloneGithubRepositoryUseCase
-) extends ScheduledJob {
-
-  override val interval: Duration = 12.hours
+) extends ScheduledJob(
+      syncRepository = syncRepository,
+      interval = 12.hours,
+      syncType = SyncType.PROBLEMS
+    ) {
 
   override def run(): IO[DomainError, Unit] = defer {
-    ZIO.logInfo("Start sync problems job.").run
+    val syncUid = onSyncStart().run
 
-    val syncUid = UUID.randomUUID()
-    val lastSync = problemSyncRepository.getLatestSync(SyncType.PROBLEMS).run
+    val lastSync = syncRepository.getLatestSync(SyncType.PROBLEMS).run
     val destinationDirPath = RelativePath(s"github/${syncUid.toString}")
 
     val timeThreshold = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
-    val shouldSync = lastSync.isEmpty || lastSync.get.timestamp.isBefore(timeThreshold)
 
     ZIO
       .logInfo(
-        "Last problems sync happened: %s; last sync time: %s, should do sync: %s".format(
+        "Last problems sync happened: %s; last sync time: %s".format(
           formatLastSyncTimeDifference(lastSync),
-          lastSync.map(_.timestamp),
-          shouldSync
+          lastSync.map(_.timestamp)
         )
       )
       .run
 
-    if (shouldSync) {
-      val repoDir = cloneRepositoryUseCase
-        .cloneRepository(
-          repositoryUrl = "https://github.com/aivanovski/leetcode-api.git",
-          destinationDirPath = destinationDirPath
-        )
-        .run
+    val repoDir = cloneRepositoryUseCase
+      .cloneRepository(
+        repositoryUrl = "https://github.com/aivanovski/leetcode-api.git",
+        destinationDirPath = destinationDirPath
+      )
+      .run
 
-      val problemsFile = RelativePath(s"${repoDir.path}/data/leetcode_questions.json")
-      val content = fileSystemProvider.readContent(problemsFile).run
+    val problemsFile = RelativePath(s"${repoDir.path}/data/leetcode_questions.json")
+    val content = fileSystemProvider.readContent(problemsFile).run
 
-      val remoteProblems = problemParser.parse(content).run
-      val localProblems = problemRepository.getAll().run
+    val remoteProblems = problemParser.parse(content).run
+    val localProblems = problemRepository.getAll().run
 
-      syncProblemsWithDatabase(
-        remoteProblems = remoteProblems,
-        localProblems = localProblems
-      ).run
+    syncProblemsWithDatabase(
+      remoteProblems = remoteProblems,
+      localProblems = localProblems
+    ).run
 
-      problemSyncRepository
-        .add(
-          DataSyncEntity(
-            uid = SyncUid(syncUid),
-            syncType = SyncType.PROBLEMS,
-            timestamp = LocalDateTime.now(ZoneOffset.UTC)
-          )
-        )
-        .run
+    syncComplete(syncUid).run
 
-      ZIO.logInfo(s"Removing files in: ${destinationDirPath.relativePath}").run
-      fileSystemProvider.remove(destinationDirPath).run
-    }
+    ZIO.logInfo(s"Removing files in: ${destinationDirPath.relativePath}").run
+    fileSystemProvider.remove(destinationDirPath).run
 
     ZIO.logInfo("Sync problems job finished.").run
 

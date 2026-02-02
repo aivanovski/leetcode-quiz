@@ -10,6 +10,7 @@ case class ProblemItemDto(
   categoryTitle: String,
   difficulty: String,
   url: String,
+  solutions: List[SolutionItemDto],
   likes: Int,
   dislikes: Int
 ) derives JsonEncoder,

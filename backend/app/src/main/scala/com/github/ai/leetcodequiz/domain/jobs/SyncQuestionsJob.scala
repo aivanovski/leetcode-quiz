@@ -32,19 +32,21 @@ class SyncQuestionsJob(
   private val problemRepository: ProblemRepository,
   private val questionRepository: QuestionRepository,
   private val fileSystemProvider: FileSystemProvider
-) extends ScheduledJob {
-
-  override val interval: Duration = 12.hours
+) extends ScheduledJob(
+      syncRepository = syncRepository,
+      interval = 12.hours,
+      syncType = SyncType.QUESTIONS,
+      dependsOn = List(SyncType.PROBLEMS)
+    ) {
 
   override def run(): IO[DomainError, Unit] = defer {
-    ZIO.logInfo("Start sync questions job.").run
+    val syncUid = onSyncStart().run
 
-    val syncUid = UUID.randomUUID()
     val lastSync = syncRepository.getLatestSync(SyncType.QUESTIONS).run
     val destinationDirPath = RelativePath(s"github/${syncUid.toString}")
 
     val timeThreshold = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
-    val shouldSync = lastSync.isEmpty || lastSync.get.timestamp.isBefore(timeThreshold)
+    val shouldSync = shouldRunSync().run
 
     ZIO
       .logInfo(
@@ -74,15 +76,7 @@ class SyncQuestionsJob(
         localQuestions = localQuestions
       ).run
 
-      syncRepository
-        .add(
-          DataSyncEntity(
-            uid = SyncUid(syncUid),
-            syncType = SyncType.QUESTIONS,
-            timestamp = LocalDateTime.now(ZoneOffset.UTC)
-          )
-        )
-        .run
+      syncComplete(syncUid).run
 
       ZIO.logInfo(s"Removing files in: ${destinationDirPath.relativePath}").run
       fileSystemProvider.remove(destinationDirPath).run

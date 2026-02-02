@@ -3,7 +3,7 @@ package com.github.ai.leetcodequiz.data.db.model
 import doobie.util.meta.Meta
 
 enum SyncType {
-  case PROBLEMS, QUESTIONS
+  case PROBLEMS, QUESTIONS, SOLUTIONS
 }
 
 object SyncType {

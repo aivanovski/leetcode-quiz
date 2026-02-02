@@ -1,5 +1,7 @@
 package com.github.ai.leetcodequiz.entity.exception
 
+import com.github.ai.leetcodequiz.entity.FilePath
+
 @SuppressWarnings(Array("org.wartremover.warts.Null"))
 class DomainError(
   val message: Option[String],
@@ -50,6 +52,14 @@ object FileSystemError {
   def apply(cause: Throwable): FileSystemError =
     new FileSystemError(None, Some(cause))
 }
+
+class FileNotFoundError(
+  path: FilePath
+) extends FileSystemError(message = Some(s"File not found: $path"), cause = None)
+
+class NotADirectoryError(
+  path: FilePath
+) extends FileSystemError(message = Some(s"File is not a directory: $path"), cause = None)
 
 class DatabaseError(
   message: Option[String],
