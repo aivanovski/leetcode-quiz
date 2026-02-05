@@ -125,7 +125,7 @@ class ProblemRepository(
   def delete(id: ProblemId): IO[DatabaseError, Unit] = {
     for {
       _ <- hintDao.deleteByProblemId(id)
-      _ <- problemDao.delete(id)
+      _ <- problemDao.deleteProblem(id)
     } yield ()
   }
 

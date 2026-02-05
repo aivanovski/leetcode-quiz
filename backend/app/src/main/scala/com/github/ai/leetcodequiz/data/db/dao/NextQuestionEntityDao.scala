@@ -1,92 +1,40 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.db.execute
-import com.github.ai.leetcodequiz.data.db.model.{
-  NextQuestionEntity,
-  NextQuestionUid,
-  QuestionnaireUid
-}
+import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
+import com.github.ai.leetcodequiz.data.db.model.{NextQuestionEntity, NextQuestionUid, QuestionnaireUid}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
-import doobie.implicits.*
-import doobie.syntax.ConnectionIOOps
-import doobie.util.transactor.Transactor
-import zio.{IO, Task, ZIO}
+import slick.jdbc.SQLiteProfile.api.*
+import zio.*
 
 class NextQuestionEntityDao(
-  private val transactor: Transactor[Task]
-) {
+  db: AppDatabase
+) extends Dao(db = db.context, table = db.NextQuestionsTable) {
 
-  def getByUid(uid: NextQuestionUid): IO[DatabaseError, Option[NextQuestionEntity]] = {
-    sql"""
-        SELECT uid, questionnaire_uid, question_uid
-        FROM next_questions
-        WHERE uid = $uid
-      """
-      .query[NextQuestionEntity]
-      .option
-      .execute(transactor)
-  }
+  import SlickMappers.given
+
+  def getByUid(uid: NextQuestionUid): IO[DatabaseError, Option[NextQuestionEntity]] =
+    queryOne(_.uid === uid)
 
   def getByQuestionnaireUid(
     questionnaireUid: QuestionnaireUid
-  ): IO[DatabaseError, List[NextQuestionEntity]] = {
-    sql"""
-        SELECT uid, questionnaire_uid, question_uid
-        FROM next_questions
-        WHERE questionnaire_uid = $questionnaireUid
-      """
-      .query[NextQuestionEntity]
-      .to[List]
-      .execute(transactor)
-  }
+  ): IO[DatabaseError, List[NextQuestionEntity]] =
+    query(_.questionnaireUid === questionnaireUid)
 
-  def getAll(): IO[DatabaseError, List[NextQuestionEntity]] = {
-    sql"""
-        SELECT uid, questionnaire_uid, question_uid
-        FROM next_questions
-      """
-      .query[NextQuestionEntity]
-      .to[List]
-      .execute(transactor)
-  }
+  def getAll(): IO[DatabaseError, List[NextQuestionEntity]] =
+    queryAll()
 
   def add(entities: List[NextQuestionEntity]): IO[DatabaseError, List[NextQuestionEntity]] =
-    ZIO.collectAll(entities.map(entity => add(entity)))
+    insertAll(entities)
 
-  def add(entity: NextQuestionEntity): IO[DatabaseError, NextQuestionEntity] = {
-    sql"""
-        INSERT INTO next_questions (uid, questionnaire_uid, question_uid)
-        VALUES (${entity.uid}, ${entity.questionnaireUid}, ${entity.questionUid})
-      """.update.run
-      .map(_ => entity)
-      .execute(transactor)
-  }
+  def add(entity: NextQuestionEntity): IO[DatabaseError, NextQuestionEntity] =
+    insert(entity)
 
-  def update(entity: NextQuestionEntity): IO[DatabaseError, NextQuestionEntity] = {
-    sql"""
-        UPDATE next_questions
-        SET questionnaire_uid = ${entity.questionnaireUid}, question_uid = ${entity.questionUid}
-        WHERE uid = ${entity.uid}
-      """.update.run
-      .map(_ => entity)
-      .execute(transactor)
-  }
+  def update(entity: NextQuestionEntity): IO[DatabaseError, NextQuestionEntity] =
+    updateOne(_.uid === entity.uid, entity)
 
-  def delete(uid: NextQuestionUid): IO[DatabaseError, Unit] = {
-    sql"""
-        DELETE FROM next_questions
-        WHERE uid = $uid
-      """.update.run
-      .execute(transactor)
-      .unit
-  }
+  def deleteNextQuestion(uid: NextQuestionUid): IO[DatabaseError, Unit] =
+    deleteOne(_.uid === uid)
 
-  def deleteByQuestionnaireUid(questionnaireUid: QuestionnaireUid): IO[DatabaseError, Unit] = {
-    sql"""
-        DELETE FROM next_questions
-        WHERE questionnaire_uid = $questionnaireUid
-      """.update.run
-      .execute(transactor)
-      .unit
-  }
+  def deleteByQuestionnaireUid(questionnaireUid: QuestionnaireUid): IO[DatabaseError, Unit] =
+    delete(_.questionnaireUid === questionnaireUid)
 }

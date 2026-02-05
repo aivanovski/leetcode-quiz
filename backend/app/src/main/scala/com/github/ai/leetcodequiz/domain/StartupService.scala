@@ -1,5 +1,6 @@
 package com.github.ai.leetcodequiz.domain
 
+import com.github.ai.leetcodequiz.data.db.AppDatabase
 import com.github.ai.leetcodequiz.domain.usecases.SetupTestDataUseCase
 import com.github.ai.leetcodequiz.entity.AppEnvironment.DEBUG
 import com.github.ai.leetcodequiz.entity.CliArguments
@@ -11,6 +12,9 @@ class StartupService {
   def startupServer() = {
     defer {
       val appArguments = ZIO.service[CliArguments].run
+      val db = ZIO.service[AppDatabase].run
+      
+      db.initialize().run
 
       val jobService = ZIO.service[ScheduledJobService].run
       jobService.startScheduledJobs().run

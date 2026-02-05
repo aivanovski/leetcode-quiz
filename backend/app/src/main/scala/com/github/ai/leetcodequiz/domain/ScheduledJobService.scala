@@ -27,7 +27,7 @@ class ScheduledJobService(
     val allJobs = List(syncProblemsJob, syncQuestionsJob, syncSolutionsJob)
 
     runJob(allJobs)
-      .repeat(Schedule.fixed(10.minutes))
+      .repeat(Schedule.fixed(1.hour))
       .catchAllCause { cause =>
         ZIO.succeed(println(cause.prettyPrint))
       }

@@ -9,7 +9,7 @@ import com.github.ai.leetcodequiz.presentation.routes.{
   QuestionnaireRoutes,
   AuthRoutes
 }
-import com.github.ai.leetcodequiz.data.db.DoobieTransactor
+import com.github.ai.leetcodequiz.data.db.AppDatabase
 import com.github.ai.leetcodequiz.utils.RequestLogger
 import zio.*
 import zio.http.*
@@ -128,12 +128,12 @@ object Main extends ZIOAppDefault {
         Layers.solutionDao,
 
         // Others
+        Layers.database,
         Layers.jsonSerializer,
         Layers.fileSystemProvider,
         Layers.problemParser,
         Server.live,
-        ZLayer.succeed(serverConfig),
-        DoobieTransactor.layer("db")
+        ZLayer.succeed(serverConfig)
       )
       .run
     ()

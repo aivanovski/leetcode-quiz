@@ -4,8 +4,7 @@ val zioJsonVersion = "0.6.2"
 val circeVersion = "0.14.10"
 val zioDirect = "1.0.0-RC7"
 val zioHttp = "3.0.1"
-val doobieVersion = "1.0.0-RC4"
-val zioInteropCatsVersion = "23.1.0.0"
+val slickVersion = "3.6.1"
 
 ThisBuild / scalaVersion := scala3Version
 ThisBuild / version := "0.1.0"
@@ -80,10 +79,9 @@ lazy val app = project
       "org.eclipse.jgit" % "org.eclipse.jgit" % "6.2.0.202206071550-r",
 
       // Database
-      "org.tpolecat" %% "doobie-core" % doobieVersion,
-      "org.tpolecat" %% "doobie-hikari" % doobieVersion,
+      "com.typesafe.slick" %% "slick" % slickVersion,
+      "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
       "org.xerial" % "sqlite-jdbc" % "3.51.1.0",
-      "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion,
       "com.typesafe" % "config" % "1.4.3",
 
       // Password Hashing

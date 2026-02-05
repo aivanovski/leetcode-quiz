@@ -1,5 +1,6 @@
 package com.github.ai.leetcodequiz
 
+import com.github.ai.leetcodequiz.data.db.{AppDatabase, DatabaseConnectionFactory}
 import com.github.ai.leetcodequiz.data.db.dao.{
   AnswerEntityDao,
   DataSyncEntityDao,
@@ -45,6 +46,13 @@ import com.github.ai.leetcodequiz.presentation.controllers.{
 import zio.{ZIO, ZLayer}
 
 object Layers {
+
+  // Database
+  val database = ZLayer.fromZIO {
+    DatabaseConnectionFactory()
+      .create()
+      .map(db => AppDatabase(db))
+  }
 
   // Dao's
   val dataSyncDao = ZLayer.fromFunction(DataSyncEntityDao(_))
