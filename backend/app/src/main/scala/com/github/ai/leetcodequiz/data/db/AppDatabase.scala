@@ -21,7 +21,9 @@ class AppDatabase(
   val QuestionsTable = TableQuery(new QuestionEntityTable(_, ProblemsTable))
   val QuestionnairesTable = TableQuery[QuestionnaireEntityTable]
   val AnswersTable = TableQuery(new AnswerEntityTable(_, QuestionnairesTable, QuestionsTable))
-  val NextQuestionsTable = TableQuery(new NextQuestionEntityTable(_, QuestionnairesTable, QuestionsTable))
+  val NextQuestionsTable = TableQuery(
+    new NextQuestionEntityTable(_, QuestionnairesTable, QuestionsTable)
+  )
   val UsersTable = TableQuery[UserEntityTable]
   val SolutionsTable = TableQuery(new SolutionEntityTable(_, ProblemsTable))
 

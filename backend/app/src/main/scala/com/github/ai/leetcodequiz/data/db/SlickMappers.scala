@@ -9,10 +9,16 @@ import java.util.UUID
 object SlickMappers {
 
   given BaseColumnType[QuestionnaireUid] =
-    MappedColumnType.base[QuestionnaireUid, String](_.toString, str => QuestionnaireUid(UUID.fromString(str)))
+    MappedColumnType.base[QuestionnaireUid, String](
+      _.toString,
+      str => QuestionnaireUid(UUID.fromString(str))
+    )
 
   given BaseColumnType[NextQuestionUid] =
-    MappedColumnType.base[NextQuestionUid, String](_.toString, str => NextQuestionUid(UUID.fromString(str)))
+    MappedColumnType.base[NextQuestionUid, String](
+      _.toString,
+      str => NextQuestionUid(UUID.fromString(str))
+    )
 
   given BaseColumnType[AnswerUid] =
     MappedColumnType.base[AnswerUid, String](_.toString, str => AnswerUid(UUID.fromString(str)))

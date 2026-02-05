@@ -18,7 +18,9 @@ class SolutionEntityDao(
       case Some(value) => value
       case None =>
         ZIO
-          .fail(FailedToFindEntityError(entityType = classOf[SolutionEntity], criteria = s"uid = $uid"))
+          .fail(
+            FailedToFindEntityError(entityType = classOf[SolutionEntity], criteria = s"uid = $uid")
+          )
           .run
   }
 

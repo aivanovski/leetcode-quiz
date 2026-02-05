@@ -13,7 +13,7 @@ class StartupService {
     defer {
       val appArguments = ZIO.service[CliArguments].run
       val db = ZIO.service[AppDatabase].run
-      
+
       db.initialize().run
 
       val jobService = ZIO.service[ScheduledJobService].run

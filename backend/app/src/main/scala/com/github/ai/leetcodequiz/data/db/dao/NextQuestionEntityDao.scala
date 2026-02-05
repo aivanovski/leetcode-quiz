@@ -1,7 +1,11 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
 import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
-import com.github.ai.leetcodequiz.data.db.model.{NextQuestionEntity, NextQuestionUid, QuestionnaireUid}
+import com.github.ai.leetcodequiz.data.db.model.{
+  NextQuestionEntity,
+  NextQuestionUid,
+  QuestionnaireUid
+}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import slick.jdbc.SQLiteProfile.api.*
 import zio.*
