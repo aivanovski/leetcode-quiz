@@ -27,6 +27,14 @@ class AppDatabase(
   val UsersTable = TableQuery[UserEntityTable]
   val SolutionsTable = TableQuery(new SolutionEntityTable(_, ProblemsTable))
 
+  // TODO: fix foreign key handling
+  //  According to gpt:
+  //   PRAGMA foreign_keys = ON is executed only once during initialize(),
+  //   but the database is created with Hikari pooling (DatabaseConnectionFactory.create).
+  //   In SQLite this pragma is connection-scoped, so later operations that run on different
+  //   pooled connections can bypass FK checks/cascades, allowing orphaned answers/questions/solutions
+  //   rows even though the schema defines foreign keys.
+
   private val enableForeignKeys = sqlu"PRAGMA foreign_keys = ON"
 
   def initialize(): IO[DatabaseError, Unit] = {
