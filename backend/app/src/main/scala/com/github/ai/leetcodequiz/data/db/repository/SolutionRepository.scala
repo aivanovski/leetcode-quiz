@@ -28,7 +28,7 @@ class SolutionRepository(
     dao.update(solution)
 
   def delete(uid: SolutionUid): IO[DatabaseError, Unit] =
-    dao.delete(uid)
+    dao.deleteSolution(uid)
 
   def deleteByProblemId(problemId: ProblemId): IO[DatabaseError, Unit] =
     dao.deleteByProblemId(problemId)

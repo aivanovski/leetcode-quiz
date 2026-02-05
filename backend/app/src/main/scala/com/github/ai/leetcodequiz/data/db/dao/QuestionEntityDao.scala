@@ -1,52 +1,26 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.db.execute
-import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid, ProblemId}
+import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
+import com.github.ai.leetcodequiz.data.db.model.{QuestionEntity, QuestionUid}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
-import doobie.implicits.*
-import doobie.syntax.ConnectionIOOps
-import doobie.util.transactor.Transactor
-import zio.{IO, Task}
+import slick.jdbc.SQLiteProfile.api.*
+import zio.*
 
 class QuestionEntityDao(
-  private val transactor: Transactor[Task]
-) {
+  db: AppDatabase
+) extends Dao(db = db.context, table = db.QuestionsTable) {
 
-  def getAll(): IO[DatabaseError, List[QuestionEntity]] = {
-    sql"""
-        SELECT uid, problem_id, question, complexity
-        FROM questions
-      """
-      .query[QuestionEntity]
-      .to[List]
-      .execute(transactor)
-  }
+  import SlickMappers.given
 
-  def add(question: QuestionEntity): IO[DatabaseError, QuestionEntity] = {
-    sql"""
-        INSERT INTO questions (uid, problem_id, question, complexity)
-        VALUES (${question.uid}, ${question.problemId}, ${question.question}, ${question.complexity})
-      """.update.run
-      .map(_ => question)
-      .execute(transactor)
-  }
+  def getAll(): IO[DatabaseError, List[QuestionEntity]] =
+    queryAll()
 
-  def update(question: QuestionEntity): IO[DatabaseError, QuestionEntity] = {
-    sql"""
-        UPDATE questions
-        SET problem_id = ${question.problemId}, question = ${question.question}, complexity = ${question.complexity}
-        WHERE uid = ${question.uid}
-      """.update.run
-      .map(_ => question)
-      .execute(transactor)
-  }
+  def add(question: QuestionEntity): IO[DatabaseError, QuestionEntity] =
+    insert(question)
 
-  def delete(uid: QuestionUid): IO[DatabaseError, Unit] = {
-    sql"""
-        DELETE FROM questions
-        WHERE uid = $uid
-      """.update.run
-      .execute(transactor)
-      .unit
-  }
+  def update(question: QuestionEntity): IO[DatabaseError, QuestionEntity] =
+    updateOne(_.uid === question.uid, question)
+
+  def deleteQuestion(uid: QuestionUid): IO[DatabaseError, Unit] =
+    deleteOne(_.uid === uid)
 }

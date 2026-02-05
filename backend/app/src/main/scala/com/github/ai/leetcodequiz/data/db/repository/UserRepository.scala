@@ -11,5 +11,5 @@ class UserRepository(
   def findByUid(uid: UserUid) = dao.findByUid(uid)
   def findByEmail(email: String) = dao.findByEmail(email)
   def add(user: UserEntity) = dao.add(user)
-  def delete(uid: UserUid) = dao.delete(uid)
+  def delete(uid: UserUid) = dao.deleteUser(uid)
 }

@@ -1,83 +1,44 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.db.execute
-import com.github.ai.leetcodequiz.data.db.given
-import com.github.ai.leetcodequiz.data.db.model.{QuestionUid, QuestionnaireEntity, QuestionnaireUid}
-import com.github.ai.leetcodequiz.data.db.model.QuestionnaireUid.given
-import com.github.ai.leetcodequiz.data.db.model.QuestionUid.given
+import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
+import com.github.ai.leetcodequiz.data.db.model.{QuestionnaireEntity, QuestionnaireUid}
 import com.github.ai.leetcodequiz.entity.exception.{DatabaseError, FailedToFindEntityError}
-import doobie.implicits.*
-import doobie.syntax.ConnectionIOOps
-import doobie.util.transactor.Transactor
-import zio.{IO, Task, ZIO}
+import slick.jdbc.SQLiteProfile.api.*
+import zio.*
+import zio.direct.*
 
 class QuestionnaireEntityDao(
-  private val transactor: Transactor[Task]
-) {
+  db: AppDatabase
+) extends Dao(db = db.context, table = db.QuestionnairesTable) {
 
-  def getAll(): IO[DatabaseError, List[QuestionnaireEntity]] = {
-    sql"""
-        SELECT uid, is_complete
-        FROM questionnaires
-      """
-      .query[QuestionnaireEntity]
-      .to[List]
-      .execute(transactor)
-  }
+  import SlickMappers.given
 
-  def findByUid(uid: QuestionnaireUid): IO[DatabaseError, Option[QuestionnaireEntity]] = {
-    sql"""
-        SELECT uid, is_complete
-        FROM questionnaires
-        WHERE uid = $uid
-      """
-      .query[QuestionnaireEntity]
-      .option
-      .execute(transactor)
-  }
+  def getAll(): IO[DatabaseError, List[QuestionnaireEntity]] =
+    queryAll()
 
-  def getByUid(uid: QuestionnaireUid): IO[DatabaseError, QuestionnaireEntity] = {
-    findByUid(uid)
-      .flatMap { opt =>
+  def findByUid(uid: QuestionnaireUid): IO[DatabaseError, Option[QuestionnaireEntity]] =
+    queryOne(_.uid === uid)
+
+  def getByUid(uid: QuestionnaireUid): IO[DatabaseError, QuestionnaireEntity] = defer {
+    findByUid(uid).run match
+      case Some(value) => value
+      case None =>
         ZIO
-          .fromOption(opt)
-          .mapError(_ => FailedToFindEntityError(classOf[QuestionnaireEntity], "uid = $uid"))
-      }
+          .fail(FailedToFindEntityError(classOf[QuestionnaireEntity], s"uid = $uid"))
+          .run
   }
 
-  def add(questionnaire: QuestionnaireEntity): IO[DatabaseError, QuestionnaireEntity] = {
-    sql"""
-        INSERT INTO questionnaires (uid, is_complete)
-        VALUES (${questionnaire.uid}, ${questionnaire.isComplete})
-      """.update.run
-      .map(_ => questionnaire)
-      .execute(transactor)
-  }
+  def add(questionnaire: QuestionnaireEntity): IO[DatabaseError, QuestionnaireEntity] =
+    insert(questionnaire)
 
   def addBatch(
     questionnaires: List[QuestionnaireEntity]
-  ): IO[DatabaseError, List[QuestionnaireEntity]] = {
-    ZIO
-      .foreach(questionnaires)(add)
-      .mapError(e => e)
-  }
+  ): IO[DatabaseError, List[QuestionnaireEntity]] =
+    insertAll(questionnaires)
 
-  def update(questionnaire: QuestionnaireEntity): IO[DatabaseError, QuestionnaireEntity] = {
-    sql"""
-        UPDATE questionnaires
-        SET is_complete = ${questionnaire.isComplete}
-        WHERE uid = ${questionnaire.uid}
-      """.update.run
-      .map(_ => questionnaire)
-      .execute(transactor)
-  }
+  def update(questionnaire: QuestionnaireEntity): IO[DatabaseError, QuestionnaireEntity] =
+    updateOne(_.uid === questionnaire.uid, questionnaire)
 
-  def delete(uid: QuestionnaireUid): IO[DatabaseError, Unit] = {
-    sql"""
-        DELETE FROM questionnaires
-        WHERE uid = $uid
-      """.update.run
-      .execute(transactor)
-      .unit
-  }
+  def deleteQuestionnaire(uid: QuestionnaireUid): IO[DatabaseError, Unit] =
+    deleteOne(_.uid === uid)
 }

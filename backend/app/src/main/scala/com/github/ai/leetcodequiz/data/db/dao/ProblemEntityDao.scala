@@ -1,65 +1,29 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.db.execute
+import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
 import com.github.ai.leetcodequiz.data.db.model.{ProblemEntity, ProblemId}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
-import doobie.implicits.*
-import doobie.syntax.ConnectionIOOps
-import doobie.util.transactor.Transactor
-import zio.{IO, Task}
+import slick.jdbc.SQLiteProfile.api.*
+import zio.*
 
 class ProblemEntityDao(
-  private val transactor: Transactor[Task]
-) {
+  db: AppDatabase
+) extends Dao(db = db.context, table = db.ProblemsTable) {
 
-  def getById(id: ProblemId): IO[DatabaseError, Option[ProblemEntity]] = {
-    sql"""
-        SELECT id, title, content, category, url, difficulty, likes, dislikes
-        FROM problems
-        WHERE id = $id
-      """
-      .query[ProblemEntity]
-      .option
-      .execute(transactor)
-  }
+  import SlickMappers.given
 
-  def getAll(): IO[DatabaseError, List[ProblemEntity]] = {
-    sql"""
-        SELECT id, title, content, category, url, difficulty, likes, dislikes
-        FROM problems
-      """
-      .query[ProblemEntity]
-      .to[List]
-      .execute(transactor)
-  }
+  def getById(id: ProblemId): IO[DatabaseError, Option[ProblemEntity]] =
+    queryOne(_.id === id)
 
-  def add(problem: ProblemEntity): IO[DatabaseError, ProblemEntity] = {
-    sql"""
-        INSERT INTO problems (id, title, content, category, url, difficulty, likes, dislikes)
-        VALUES (${problem.id}, ${problem.title}, ${problem.content}, ${problem.category}, ${problem.url}, ${problem.difficulty}, ${problem.likes}, ${problem.dislikes})
-      """.update.run
-      .map(_ => problem)
-      .execute(transactor)
-  }
+  def getAll(): IO[DatabaseError, List[ProblemEntity]] =
+    queryAll()
 
-  def update(problem: ProblemEntity): IO[DatabaseError, ProblemEntity] = {
-    sql"""
-        UPDATE problems
-        SET title = ${problem.title}, content = ${problem.content}, category = ${problem.category}, 
-            url = ${problem.url}, difficulty = ${problem.difficulty}, likes = ${problem.likes}, dislikes = ${problem.dislikes}
-        WHERE id = ${problem.id}
-      """.update.run
-      .map(_ => problem)
-      .execute(transactor)
-  }
+  def add(problem: ProblemEntity): IO[DatabaseError, ProblemEntity] =
+    insert(problem)
 
-  def delete(id: ProblemId): IO[DatabaseError, Unit] = {
-    sql"""
-        DELETE FROM problems
-        WHERE id = $id
-      """.update.run
-      .execute(transactor)
-      .unit
-  }
+  def update(problem: ProblemEntity): IO[DatabaseError, ProblemEntity] =
+    updateOne(_.id === problem.id, problem)
 
+  def deleteProblem(id: ProblemId): IO[DatabaseError, Unit] =
+    deleteOne(_.id === id)
 }

@@ -1,64 +1,36 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
-import com.github.ai.leetcodequiz.data.db.execute
+import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
 import com.github.ai.leetcodequiz.data.db.model.{UserEntity, UserUid}
 import com.github.ai.leetcodequiz.entity.exception.{DatabaseError, FailedToFindEntityError}
-import doobie.implicits.*
-import doobie.util.transactor.Transactor
+import slick.jdbc.SQLiteProfile.api.*
 import zio.*
+import zio.direct.*
 
 class UserEntityDao(
-  private val transactor: Transactor[Task]
-) {
+  db: AppDatabase
+) extends Dao(db = db.context, table = db.UsersTable) {
 
-  def getByUid(uid: UserUid): IO[DatabaseError, UserEntity] = {
-    findByUid(uid)
-      .flatMap { opt =>
+  import SlickMappers.given
+
+  def getByUid(uid: UserUid): IO[DatabaseError, UserEntity] = defer {
+    findByUid(uid).run match
+      case Some(user) => user
+      case None =>
         ZIO
-          .fromOption(opt)
-          .mapError(_ =>
-            FailedToFindEntityError(entityType = classOf[UserEntity], criteria = "uid = $uid")
-          )
-      }
+          .fail(FailedToFindEntityError(entityType = classOf[UserEntity], criteria = s"uid = $uid"))
+          .run
   }
 
-  def findByUid(uid: UserUid): IO[DatabaseError, Option[UserEntity]] = {
-    sql"""
-          SELECT uid, name, email, password_hash
-          FROM users
-          WHERE uid = ${uid.toString}
-        """
-      .query[UserEntity]
-      .option
-      .execute(transactor)
-  }
+  def findByUid(uid: UserUid): IO[DatabaseError, Option[UserEntity]] =
+    queryOne(_.uid === uid)
 
-  def findByEmail(email: String): IO[DatabaseError, Option[UserEntity]] = {
-    sql"""
-        SELECT uid, name, email, password_hash
-        FROM users
-        WHERE email = $email
-      """
-      .query[UserEntity]
-      .option
-      .execute(transactor)
-  }
+  def findByEmail(email: String): IO[DatabaseError, Option[UserEntity]] =
+    queryOne(_.email === email)
 
-  def add(user: UserEntity): IO[DatabaseError, UserEntity] = {
-    sql"""
-        INSERT INTO users (uid, name, email, password_hash)
-        VALUES (${user.uid}, ${user.name}, ${user.email}, ${user.passwordHash})
-      """.update.run
-      .map(_ => user)
-      .execute(transactor)
-  }
+  def add(user: UserEntity): IO[DatabaseError, UserEntity] =
+    insert(user)
 
-  def delete(uid: UserUid): IO[DatabaseError, Unit] = {
-    sql"""
-        DELETE FROM users
-        WHERE uid = $uid
-      """.update.run
-      .execute(transactor)
-      .unit
-  }
+  def deleteUser(uid: UserUid): IO[DatabaseError, Unit] =
+    deleteOne(_.uid === uid)
 }

@@ -6,5 +6,17 @@ import java.util.UUID
 case class DataSyncEntity(
   uid: SyncUid,
   syncType: SyncType,
-  timestamp: LocalDateTime
+  timestamp: LocalDateTime,
+  timestampValue: Long
 )
+
+object DataSyncEntity {
+  def apply(
+    uid: SyncUid,
+    syncType: SyncType,
+    timestamp: LocalDateTime
+  ): DataSyncEntity = {
+    val millis = timestamp.atZone(java.time.ZoneOffset.UTC).toInstant.toEpochMilli
+    new DataSyncEntity(uid, syncType, timestamp, millis)
+  }
+}

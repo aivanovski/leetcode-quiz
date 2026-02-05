@@ -43,7 +43,7 @@ class QuestionnaireRepository(
   def getByUid(uid: QuestionnaireUid): IO[DomainError, Questionnaire] = defer {
     val questionnaire = questionnaireDao.getByUid(uid).run
     val questions = questionDao.getByQuestionnaireUid(questionnaireUid = uid).run
-    val answers = answerDao.getByQuestionnaireUid(questionnaireUid = uid).run
+    val answers = answerDao.queryByQuestionnaireUid(questionnaireUid = uid).run
 
     toDomainEntity(questionnaire, questions, answers)
   }
@@ -53,7 +53,7 @@ class QuestionnaireRepository(
 
     questionnaireDao.add(entity).run
     questionDao.add(questions).run
-    answerDao.add(answers).run
+    answerDao.insertAll(answers).run
 
     questionnaire
   }
@@ -65,7 +65,7 @@ class QuestionnaireRepository(
     questionDao.deleteByQuestionnaireUid(questionnaire.uid).run
     questionDao.add(questions).run
     answerDao.deleteByQuestionnaireUid(questionnaire.uid).run
-    answerDao.add(answers).run
+    answerDao.insertAll(answers).run
 
     questionnaire
   }
@@ -75,7 +75,7 @@ class QuestionnaireRepository(
     questionUid: QuestionUid,
     answer: Int
   ): IO[DomainError, Unit] = defer {
-    val questionnaire = answerDao.getByQuestionnaireUid(questionnaireUid).run
+    val questionnaire = answerDao.queryByQuestionnaireUid(questionnaireUid).run
 
     val existing = questionnaire.find(answer => answer.questionUid == questionUid)
 
@@ -91,7 +91,7 @@ class QuestionnaireRepository(
     } else {
       // add new
       answerDao
-        .add(
+        .insert(
           AnswerEntity(
             uid = AnswerUid(UUID.randomUUID()),
             questionnaireUid = questionnaireUid,

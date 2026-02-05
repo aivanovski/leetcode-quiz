@@ -10,5 +10,5 @@ class QuestionRepository(
   def getAll() = dao.getAll()
   def add(question: QuestionEntity) = dao.add(question)
   def update(question: QuestionEntity) = dao.update(question)
-  def delete(uid: QuestionUid) = dao.delete(uid)
+  def delete(uid: QuestionUid) = dao.deleteQuestion(uid)
 }

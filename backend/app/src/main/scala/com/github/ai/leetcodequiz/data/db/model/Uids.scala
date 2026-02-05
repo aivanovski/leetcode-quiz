@@ -1,7 +1,5 @@
 package com.github.ai.leetcodequiz.data.db.model
 
-import doobie.util.meta.Meta
-
 import java.util.UUID
 
 opaque type SyncUid = UUID
@@ -17,60 +15,42 @@ opaque type SolutionUid = UUID
 
 object QuestionnaireUid {
   def apply(uid: UUID): QuestionnaireUid = uid
-
-  given Meta[QuestionnaireUid] =
-    Meta[String].timap(str => QuestionnaireUid(UUID.fromString(str)))(_.toString)
 }
 
 object NextQuestionUid {
   def apply(uid: UUID): NextQuestionUid = uid
-
-  given Meta[NextQuestionUid] =
-    Meta[String].timap(str => NextQuestionUid(UUID.fromString(str)))(_.toString)
 }
 
 object AnswerUid {
   def apply(uid: UUID): AnswerUid = uid
-
-  given Meta[AnswerUid] =
-    Meta[String].timap(str => AnswerUid(UUID.fromString(str)))(_.toString)
 }
 
 object SyncUid {
   def apply(uid: UUID): SyncUid = uid
-
-  given Meta[SyncUid] = Meta[String].timap(str => SyncUid(UUID.fromString(str)))(_.toString)
 }
 
 object QuestionUid {
   def apply(uid: UUID): QuestionUid = uid
-
-  given Meta[QuestionUid] = Meta[String].timap(str => QuestionUid(UUID.fromString(str)))(_.toString)
 }
 
 object ProblemId {
   def apply(id: Long): ProblemId = id
 
-  given Meta[ProblemId] = Meta[Long].timap(ProblemId(_))(identity)
+  extension (id: ProblemId) inline def value: Long = id
+
   given Ordering[ProblemId] = Ordering.Long
 }
 
 object ProblemHintId {
   def apply(id: Long): ProblemHintId = id
 
-  given Meta[ProblemHintId] = Meta[Long].timap(ProblemHintId(_))(identity)
+  extension (id: ProblemHintId) inline def value: Long = id
 }
 
 object UserUid {
   def apply(uid: UUID): UserUid = uid
-
-  given Meta[UserUid] =
-    Meta[String].timap(str => UserUid(UUID.fromString(str)))(_.toString)
 }
 
 object SolutionUid {
   def apply(uid: UUID): SolutionUid = uid
-
-  given Meta[SolutionUid] =
-    Meta[String].timap(str => SolutionUid(UUID.fromString(str)))(_.toString)
 }
