@@ -48,7 +48,7 @@ import zio.{ZIO, ZLayer}
 object Layers {
 
   // Database
-  val database = ZLayer.fromZIO {
+  val database = ZLayer.scoped {
     DatabaseConnectionFactory()
       .create()
       .map(db => AppDatabase(db))
