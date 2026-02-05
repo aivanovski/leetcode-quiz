@@ -36,6 +36,7 @@ def toSolutionItemDto(
 
 def toProblemItemDto(
   problem: Problem,
+  question: Option[QuestionEntity],
   solutions: List[SolutionEntity]
 ) =
   ProblemItemDto(
@@ -47,6 +48,7 @@ def toProblemItemDto(
     difficulty = problem.difficulty.toString,
     url = problem.url,
     solutions = solutions.map(s => toSolutionItemDto(s)),
+    questions = if (question.isDefined) List(toQuestionItemDto(question.get)) else List.empty,
     likes = problem.likes,
     dislikes = problem.dislikes
   )

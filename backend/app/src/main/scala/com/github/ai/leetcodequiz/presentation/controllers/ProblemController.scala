@@ -3,7 +3,11 @@ package com.github.ai.leetcodequiz.presentation.controllers
 import com.github.ai.leetcodequiz.api.{ProblemItemDto, ProblemsItemDto}
 import com.github.ai.leetcodequiz.api.response.{GetProblemResponse, GetProblemsResponse}
 import com.github.ai.leetcodequiz.data.db.model.ProblemId
-import com.github.ai.leetcodequiz.data.db.repository.{ProblemRepository, SolutionRepository}
+import com.github.ai.leetcodequiz.data.db.repository.{
+  ProblemRepository,
+  QuestionRepository,
+  SolutionRepository
+}
 import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.utils.{parseIdFromUrl, toProblemItemDto, toProblemsItemDto}
@@ -15,6 +19,7 @@ import zio.http.{Request, Response}
 class ProblemController(
   private val problemRepository: ProblemRepository,
   private val solutionRepository: SolutionRepository,
+  private val questionRepository: QuestionRepository,
   private val jsonSerializer: JsonSerializer
 ) {
 
@@ -30,6 +35,7 @@ class ProblemController(
     val id = request.parseIdFromUrl().map(id => ProblemId(id)).run
     val problem = problemRepository.getById(id = id).run
     val solutions = solutionRepository.findByProblemId(id).run
+    val question = questionRepository.findByProblemId(id).run
 
     if (problem.isEmpty) {
       ZIO.fail(DomainError(s"Failed to find entity by id: $id")).run
@@ -37,6 +43,7 @@ class ProblemController(
 
     val dto = toProblemItemDto(
       problem = problem.get,
+      question = question,
       solutions = solutions
     )
     Response.json(jsonSerializer.serialize(GetProblemResponse(dto)))

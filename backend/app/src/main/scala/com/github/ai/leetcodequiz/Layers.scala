@@ -95,7 +95,7 @@ object Layers {
   val getQuestionnaireStatsUseCase = ZLayer.fromFunction(GetQuestionnaireStatsUseCase(_, _))
 
   // Controllers
-  val problemController = ZLayer.fromFunction(ProblemController(_, _, _))
+  val problemController = ZLayer.fromFunction(ProblemController(_, _, _, _))
   val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
   val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _))
   val answerController = ZLayer.fromFunction(AnswerController(_, _, _, _))
