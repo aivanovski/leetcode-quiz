@@ -1,6 +1,9 @@
 package com.aivanovski.leetcode.android.di
 
 import com.aivanovski.leetcode.android.data.api.ApiClient
+import com.aivanovski.leetcode.android.data.database.AppDatabase
+import com.aivanovski.leetcode.android.data.database.dao.ProblemEntityDao
+import com.aivanovski.leetcode.android.data.repository.ProblemRepository
 import com.aivanovski.leetcode.android.data.settings.Settings
 import com.aivanovski.leetcode.android.data.settings.SettingsImpl
 import com.aivanovski.leetcode.android.domain.ProblemHtmlFormatter
@@ -20,6 +23,8 @@ import com.aivanovski.leetcode.android.presentation.problemList.ProblemListViewM
 import com.aivanovski.leetcode.android.presentation.quiz.QuizCellFactory
 import com.aivanovski.leetcode.android.presentation.quiz.QuizInteractor
 import com.aivanovski.leetcode.android.presentation.quiz.QuizViewModel
+import com.aivanovski.leetcode.android.presentation.quizStart.QuizStartInteractor
+import com.aivanovski.leetcode.android.presentation.quizStart.QuizStartViewModel
 import com.aivanovski.leetcode.android.presentation.root.RootViewModel
 import com.aivanovski.leetcode.android.presentation.settings.SettingsCellFactory
 import com.aivanovski.leetcode.android.presentation.settings.SettingsInteractor
@@ -38,6 +43,13 @@ object KoinModule {
         singleOf(::ThemeProviderImpl).bind(ThemeProvider::class)
         singleOf(::ProblemHtmlFormatter)
 
+        // Database
+        single { AppDatabase.buildDatabase(get()) }
+        single { provideProblemDao(get()) }
+
+        // Repositories
+        singleOf(::ProblemRepository)
+
         // Cell factories
         singleOf(::SettingsCellFactory)
         singleOf(::QuizCellFactory)
@@ -49,6 +61,7 @@ object KoinModule {
         singleOf(::QuizInteractor)
         singleOf(::ProblemDetailsInteractor)
         singleOf(::ProblemListInteractor)
+        singleOf(::QuizStartInteractor)
 
         // ViewModels
         factory { (args: ProblemDetailsArgs) ->
@@ -58,5 +71,8 @@ object KoinModule {
         factory { RootViewModel(get()) }
         factory { SettingsViewModel(get(), get(), get(), get()) }
         factory { QuizViewModel(get(), get(), get(), get()) }
+        factory { QuizStartViewModel(get(), get(), get()) }
     }
+
+    private fun provideProblemDao(db: AppDatabase): ProblemEntityDao = db.problemDao
 }

@@ -25,6 +25,7 @@ fun ProblemsItemDto.toProblem(): Problem =
         categoryTitle = categoryTitle,
         difficulty = difficulty,
         solutions = listOf(),
+        questions = listOf(),
         url = url,
         likes = likes.toLong(),
         dislikes = dislikes.toLong()
@@ -44,6 +45,7 @@ fun ProblemItemDto.toProblem(): Problem =
                 solution.contentBase64.encodeToByteString()
             ).decodeToString()
         },
+        questions = questions.map { it.toQuestion() },
         url = url,
         likes = likes.toLong(),
         dislikes = dislikes.toLong(),
@@ -67,7 +69,7 @@ fun QuestionnairesItemDto.toQuestionnaireListItem(): QuestionnaireListItem =
 
 fun QuestionItemDto.toQuestion(): Question =
     Question(
-        id = id,
+        uid = id,
         problemId = problemId,
         question = question
     )

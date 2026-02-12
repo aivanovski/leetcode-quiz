@@ -17,8 +17,8 @@ import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ElementSpace
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
-import com.aivanovski.leetcode.android.presentation.core.compose.theme.ElementMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.GroupMargin
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.HalfMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.toComposeShape
 
@@ -31,10 +31,7 @@ fun ShapedSpaceCell(viewModel: ShapedSpaceCellViewModel) {
         colors = CardDefaults.cardColors(
             containerColor = AppTheme.theme.colors.cardPrimaryBackground
         ),
-        modifier = Modifier
-            .padding(
-                horizontal = ElementMargin
-            )
+        modifier = Modifier.padding(horizontal = HalfMargin)
     ) {
         Box(
             modifier = Modifier

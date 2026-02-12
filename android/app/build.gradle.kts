@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.room)
 }
 
 val debugCredentials = readDebugCredentials()
@@ -64,12 +65,18 @@ android {
         }
     }
 
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
+
     buildFeatures {
         viewBinding = true
         compose = true
         buildConfig = true
     }
 }
+
+
 
 dependencies {
     implementation(libs.androidx.compose.foundation)
@@ -131,8 +138,10 @@ dependencies {
     // Preferences
     implementation(libs.ksprefs)
 
-    // Flippable card
-    implementation(libs.flippable)
+    // Orbit MVI
+    implementation("org.orbit-mvi:orbit-core:10.0.0")
+    implementation("org.orbit-mvi:orbit-viewmodel:10.0.0")
+    implementation("org.orbit-mvi:orbit-compose:10.0.0")
 }
 
 fun readDebugCredentials(): List<Pair<String, String>> {

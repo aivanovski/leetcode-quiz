@@ -7,6 +7,9 @@ import com.aivanovski.leetcode.android.presentation.problemDetails.model.Problem
 sealed class Screen {
 
     @Immutable
+    data object QuizStart : Screen()
+
+    @Immutable
     data object Quiz : Screen()
 
     @Immutable

@@ -11,6 +11,7 @@ data class Problem(
     val categoryTitle: String,
     val difficulty: String,
     val solutions: List<String>,
+    val questions: List<Question>,
     val url: String,
     val likes: Long,
     val dislikes: Long

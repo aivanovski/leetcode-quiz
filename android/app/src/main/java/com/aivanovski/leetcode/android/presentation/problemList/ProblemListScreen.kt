@@ -19,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -31,25 +30,31 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
 import com.aivanovski.leetcode.android.presentation.core.compose.ErrorContent
+import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
+import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 import com.aivanovski.leetcode.android.presentation.problemList.cells.ui.ProblemCell
-import com.aivanovski.leetcode.android.presentation.problemList.cells.viewModel.ProblemCellViewModel
-import com.aivanovski.leetcode.android.presentation.problemList.model.QuestionsState
+import com.aivanovski.leetcode.android.presentation.problemList.cells.ui.newProblemCellViewModel
+import com.aivanovski.leetcode.android.presentation.problemList.model.ProblemListState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProblemsScreen() {
+fun ProblemListScreen() {
     val factory = remember { ProblemListViewModel.Factory() }
     val viewModel: ProblemListViewModel = viewModel(factory = factory)
 
@@ -57,34 +62,56 @@ fun ProblemsScreen() {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isSearchActive by viewModel.isSearchActive.collectAsState()
 
+    ProblemListScreen(
+        state = state,
+        searchQuery = searchQuery,
+        isSearchActive = isSearchActive,
+        onSearchQueryChange = viewModel::onSearchQueryChanged,
+        onCloseSearch = viewModel::onCloseSearch,
+        onSearchClicked = viewModel::onSearchClicked,
+        onErrorAction = viewModel::onErrorAction
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProblemListScreen(
+    state: ProblemListState,
+    searchQuery: String,
+    isSearchActive: Boolean,
+    onSearchQueryChange: (query: String) -> Unit,
+    onCloseSearch: () -> Unit,
+    onSearchClicked: () -> Unit,
+    onErrorAction: (actionId: Int) -> Unit
+) {
     Scaffold(
         topBar = {
             if (isSearchActive) {
                 SearchTopBar(
                     searchQuery = searchQuery,
-                    onSearchQueryChanged = viewModel::onSearchQueryChanged,
-                    onCloseSearch = viewModel::onCloseSearch
+                    onSearchQueryChanged = onSearchQueryChange,
+                    onCloseSearch = onCloseSearch
                 )
             } else {
-                CenterAlignedTopAppBar(
+                TopAppBar(
                     title = {
                         Text(
-                            text = "LeetCode Problems",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            text = stringResource(R.string.problems),
+                            style = TextSize.TITLE_LARGE.toTextStyle(),
+                            fontWeight = FontWeight.Bold,
+                            color = AppTheme.colors.primaryText,
                         )
                     },
                     actions = {
-                        IconButton(onClick = viewModel::onSearchClicked) {
+                        IconButton(onClick = onSearchClicked) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Search"
+                                contentDescription = null
                             )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                        containerColor = AppTheme.colors.background
                     )
                 )
             }
@@ -95,25 +122,25 @@ fun ProblemsScreen() {
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            when (val currentState = state) {
-                is QuestionsState.Loading -> {
+            when (state) {
+                is ProblemListState.Loading -> {
                     CenteredBox {
                         CircularProgressIndicator()
                     }
                 }
 
-                is QuestionsState.Error -> {
+                is ProblemListState.Error -> {
                     CenteredBox {
                         ErrorContent(
-                            message = currentState.message,
-                            onAction = viewModel::onErrorAction
+                            message = state.message,
+                            onAction = onErrorAction
                         )
                     }
                 }
 
-                is QuestionsState.Data -> {
+                is ProblemListState.Data -> {
                     DataContent(
-                        cellViewModels = currentState.cellViewModels
+                        state = state
                     )
                 }
             }
@@ -142,8 +169,8 @@ private fun SearchTopBar(
                 onValueChange = onSearchQueryChanged,
                 placeholder = {
                     Text(
-                        text = "Search problems...",
-                        style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(R.string.search_problems),
+                        style = TextSize.TITLE_LARGE.toTextStyle()
                     )
                 },
                 modifier = Modifier
@@ -160,35 +187,28 @@ private fun SearchTopBar(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 ),
-                textStyle = MaterialTheme.typography.bodyLarge
+                textStyle = TextSize.BODY_LARGE.toTextStyle()
             )
         },
         navigationIcon = {
             IconButton(onClick = onCloseSearch) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close search"
+                    contentDescription = null
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = AppTheme.colors.background
         )
     )
 }
 
 @Composable
-private fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
-    }
-}
+private fun DataContent(
+    state: ProblemListState.Data
+) {
 
-@Composable
-private fun DataContent(cellViewModels: List<ProblemCellViewModel>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -200,8 +220,7 @@ private fun DataContent(cellViewModels: List<ProblemCellViewModel>) {
         }
 
         items(
-            items = cellViewModels,
-            key = { it.model.id }
+            items = state.cellViewModels
         ) { viewModel ->
             ProblemCell(viewModel)
         }
@@ -211,3 +230,28 @@ private fun DataContent(cellViewModels: List<ProblemCellViewModel>) {
         }
     }
 }
+
+@Preview
+@Composable
+fun ProblemListScreen_Data() {
+    ThemedScreenPreview(LightTheme) {
+        ProblemListScreen(
+            state = newDataState(),
+            searchQuery = "",
+            isSearchActive = false,
+            onSearchClicked = {},
+            onCloseSearch = {},
+            onSearchQueryChange = {},
+            onErrorAction = {}
+        )
+    }
+}
+
+@Composable
+private fun newDataState() =
+    ProblemListState.Data(
+        cellViewModels = listOf(
+            newProblemCellViewModel(),
+            newProblemCellViewModel(),
+        )
+    )

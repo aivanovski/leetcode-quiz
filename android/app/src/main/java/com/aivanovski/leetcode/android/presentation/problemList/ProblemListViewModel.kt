@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.aivanovski.leetcode.android.R
-import com.aivanovski.leetcode.android.data.api.ApiClient
 import com.aivanovski.leetcode.android.di.GlobalInjector
 import com.aivanovski.leetcode.android.entity.ErrorMessage
 import com.aivanovski.leetcode.android.entity.Problem
@@ -18,7 +17,7 @@ import com.aivanovski.leetcode.android.presentation.core.resources.ResourceProvi
 import com.aivanovski.leetcode.android.presentation.problemDetails.model.ProblemDetailsArgs
 import com.aivanovski.leetcode.android.presentation.problemList.cells.model.ProblemCellEvent
 import com.aivanovski.leetcode.android.presentation.problemList.cells.viewModel.ProblemCellViewModel
-import com.aivanovski.leetcode.android.presentation.problemList.model.QuestionsState
+import com.aivanovski.leetcode.android.presentation.problemList.model.ProblemListState
 import com.aivanovski.leetcode.android.utils.formatReadableMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -30,7 +29,7 @@ class ProblemListViewModel(
     private val resources: ResourceProvider
 ) : ViewModel() {
 
-    val state = MutableStateFlow<QuestionsState>(QuestionsState.Loading)
+    val state = MutableStateFlow<ProblemListState>(ProblemListState.Loading)
     val searchQuery = MutableStateFlow("")
     val isSearchActive = MutableStateFlow(false)
 
@@ -65,16 +64,16 @@ class ProblemListViewModel(
 
     fun loadQuestions() {
         viewModelScope.launch {
-            state.value = QuestionsState.Loading
+            state.value = ProblemListState.Loading
 
             interactor.getProblems().fold(
                 ifLeft = { error ->
-                    state.value = QuestionsState.Error(createErrorMessage(error))
+                    state.value = ProblemListState.Error(createErrorMessage(error))
                 },
                 ifRight = { problems ->
                     allProblems = problems
                     problemIdToProblemMap = allProblems.associateBy { problem -> problem.id }
-                    state.value = QuestionsState.Data(
+                    state.value = ProblemListState.Data(
                         cellViewModels = createCellViewModels(
                             filterProblems(
                                 problems,
@@ -112,7 +111,7 @@ class ProblemListViewModel(
     private fun showData() {
         if (allProblems.isEmpty()) return
 
-        state.value = QuestionsState.Data(
+        state.value = ProblemListState.Data(
             cellViewModels = createCellViewModels(
                 problems = if (isSearchActive.value) {
                     filterProblems(allProblems, searchQuery.value)

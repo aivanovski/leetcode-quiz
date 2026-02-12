@@ -1,5 +1,6 @@
 package com.aivanovski.leetcode.android.presentation.quiz.cells.ui
 
+import android.R
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.PreviewEventProvider
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.longText
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.ElementMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.toComposeShape
@@ -37,6 +39,9 @@ fun QuestionCardCell(viewModel: QuestionCardCellViewModel) {
 
     Card(
         shape = CornersShape.ALL.toComposeShape(),
+        colors = CardDefaults.cardColors(
+            containerColor = AppTheme.theme.colors.cardPrimaryBackground
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         ConstraintLayout(
@@ -49,6 +54,7 @@ fun QuestionCardCell(viewModel: QuestionCardCellViewModel) {
             Text(
                 text = model.number,
                 style = TextSize.TITLE_MEDIUM.toTextStyle(),
+                color = AppTheme.colors.primaryText,
                 modifier = Modifier.constrainAs(number) {
                     top.linkTo(parent.top, margin = ElementMargin)
                     start.linkTo(parent.start, margin = ElementMargin)
@@ -60,6 +66,7 @@ fun QuestionCardCell(viewModel: QuestionCardCellViewModel) {
                 textAlign = TextAlign.Center,
                 style = TextSize.TITLE_LARGE.toTextStyle(),
                 fontWeight = FontWeight.Bold,
+                color = AppTheme.colors.primaryText,
                 modifier = Modifier
                     .constrainAs(title) {
                         top.linkTo(number.bottom, margin = ElementMargin)
@@ -74,6 +81,7 @@ fun QuestionCardCell(viewModel: QuestionCardCellViewModel) {
                 Text(
                     text = "HTML CONTENT",
                     textAlign = TextAlign.Center,
+                    color = AppTheme.colors.primaryText,
                     modifier = Modifier
                         .constrainAs(description) {
                             top.linkTo(title.bottom, margin = ElementMargin)

@@ -8,18 +8,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.entity.ErrorMessage
@@ -37,6 +41,7 @@ import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredColumn
 import com.aivanovski.leetcode.android.presentation.core.compose.ErrorContent
 import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
+import com.aivanovski.leetcode.android.presentation.core.compose.icons.VectorIcon
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.Space
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.rememberOnClickedCallback
@@ -55,8 +60,8 @@ fun QuizScreen(screen: Screen) {
     val factory = remember(screen) { QuizViewModel.Factory() }
     val viewModel: QuizViewModel = viewModel(factory = factory)
 
-    val state by viewModel.state.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     QuizScreenContent(
         state = state,
@@ -66,7 +71,8 @@ fun QuizScreen(screen: Screen) {
         onHintClick = viewModel::onHintButtonClicked,
         onErrorAction = viewModel::onErrorAction,
         onRestart = viewModel::onRestartClicked,
-        onDismissHint = viewModel::onDismissHint
+        onDismissHint = viewModel::onDismissHint,
+        onBack = viewModel::navigateBack
     )
 }
 
@@ -80,21 +86,50 @@ fun QuizScreenContent(
     onHintClick: () -> Unit,
     onErrorAction: (actionId: Int) -> Unit,
     onRestart: () -> Unit,
-    onDismissHint: () -> Unit
+    onDismissHint: () -> Unit,
+    onBack: () -> Unit
 ) {
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            // TopAppBar(
+            //     title = {
+            //         Text(
+            //             text = stringResource(R.string.quiz),
+            //             style = TextSize.TITLE_LARGE.toTextStyle(),
+            //             color = AppTheme.colors.primaryText
+            //         )
+            //     },
+            //     navigationIcon = {
+            //         IconButton(onClick = onBack) {
+            //             Icon(
+            //                 imageVector = VectorIcon.BACK.vector,
+            //                 contentDescription = null
+            //             )
+            //         }
+            //     },
+            //     colors = TopAppBarDefaults.topAppBarColors(
+            //         containerColor = AppTheme.colors.background,
+            //     )
+            // )
+            TopAppBar(
                 title = {
                     Text(
-                        text = "Quiz",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        text = stringResource(R.string.quiz),
+                        style = TextSize.TITLE_LARGE.toTextStyle(),
+                        fontWeight = FontWeight.Bold,
+                        color = AppTheme.colors.primaryText
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = VectorIcon.BACK.vector,
+                            contentDescription = null
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = AppTheme.colors.background,
                 )
             )
         }
@@ -106,45 +141,40 @@ fun QuizScreenContent(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                when (state) {
-                    is QuizState.Loading -> {
-                        CenteredBox { CircularProgressIndicator() }
-                    }
+            when (state) {
+                is QuizState.Loading -> {
+                    CenteredBox { CircularProgressIndicator() }
+                }
 
-                    is QuizState.Error -> {
-                        CenteredBox {
-                            ErrorContent(
-                                message = state.error,
-                                onAction = onErrorAction
-                            )
-                        }
-                    }
-
-                    is QuizState.Card -> {
-                        CardContent(
-                            state = state,
-                            onAnswerClick = onAnswer,
-                            onHintClick = onHintClick
-                        )
-
-                        if (state.hintDialogState != null) {
-                            HintDialog(
-                                state = state.hintDialogState,
-                                onDismiss = onDismissHint
-                            )
-                        }
-                    }
-
-                    is QuizState.Result -> {
-                        ResultContent(
-                            state = state,
-                            onRestart = onRestart
+                is QuizState.Error -> {
+                    CenteredBox {
+                        ErrorContent(
+                            message = state.error,
+                            onAction = onErrorAction
                         )
                     }
+                }
+
+                is QuizState.Card -> {
+                    CardContent(
+                        state = state,
+                        onAnswerClick = onAnswer,
+                        onHintClick = onHintClick
+                    )
+
+                    if (state.hintDialogState != null) {
+                        HintDialog(
+                            state = state.hintDialogState,
+                            onDismiss = onDismissHint
+                        )
+                    }
+                }
+
+                is QuizState.Result -> {
+                    ResultContent(
+                        state = state,
+                        onRestart = onRestart
+                    )
                 }
             }
         }
@@ -156,37 +186,35 @@ private fun ResultContent(
     state: QuizState.Result,
     onRestart: () -> Unit
 ) {
-    CenteredBox {
-        CenteredColumn {
+    CenteredColumn {
+        Text(
+            text = stringResource(R.string.questionnaire_stats_title),
+            style = TextSize.TITLE_LARGE.toTextStyle(),
+            fontWeight = FontWeight.Bold,
+            color = AppTheme.colors.primaryText
+        )
+
+        Space(ElementMargin)
+
+        Text(
+            text = stringResource(
+                R.string.questionnaire_stats_message,
+                state.positivelyAnswered,
+                state.negativelyAnswered,
+                state.questionsAnswered
+            ),
+            style = TextSize.BODY_LARGE.toTextStyle(),
+            textAlign = TextAlign.Center
+        )
+
+        Space(ElementMargin)
+
+        Button(
+            onClick = onRestart
+        ) {
             Text(
-                text = stringResource(R.string.questionnaire_stats_title),
-                style = TextSize.TITLE_LARGE.toTextStyle(),
-                fontWeight = FontWeight.Bold,
-                color = AppTheme.colors.primaryText
+                text = stringResource(R.string.next_round)
             )
-
-            Space(ElementMargin)
-
-            Text(
-                text = stringResource(
-                    R.string.questionnaire_stats_message,
-                    state.positivelyAnswered,
-                    state.negativelyAnswered,
-                    state.questionsAnswered
-                ),
-                style = TextSize.BODY_LARGE.toTextStyle(),
-                textAlign = TextAlign.Center
-            )
-
-            Space(ElementMargin)
-
-            Button(
-                onClick = onRestart
-            ) {
-                Text(
-                    text = stringResource(R.string.next_round)
-                )
-            }
         }
     }
 }
@@ -293,7 +321,8 @@ fun QuizScreenPreview_Card() {
             onHintClick = {},
             onErrorAction = {},
             onRestart = {},
-            onDismissHint = {}
+            onDismissHint = {},
+            onBack = {}
         )
     }
 }
@@ -310,7 +339,8 @@ fun QuizScreenPreview_Result() {
             onHintClick = {},
             onErrorAction = {},
             onRestart = {},
-            onDismissHint = {}
+            onDismissHint = {},
+            onBack = {}
         )
     }
 }
@@ -327,7 +357,8 @@ fun QuizScreenPreview_Error() {
             onHintClick = {},
             onErrorAction = {},
             onRestart = {},
-            onDismissHint = {}
+            onDismissHint = {},
+            onBack = {}
         )
     }
 }

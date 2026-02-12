@@ -15,7 +15,7 @@ interface Router {
 
 class RouterImpl : Router {
 
-    private val backStack = MutableStateFlow(NavBackStack.from(Screen.Quiz))
+    private val backStack = MutableStateFlow(NavBackStack.from(Screen.QuizStart))
 
     override fun navigateBack() {
         val screens = LinkedList(backStack.value.stack)

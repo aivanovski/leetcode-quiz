@@ -3,15 +3,21 @@ package com.aivanovski.leetcode.android.presentation.quiz
 import arrow.core.Either
 import arrow.core.raise.either
 import com.aivanovski.leetcode.android.data.api.ApiClient
+import com.aivanovski.leetcode.android.data.repository.ProblemRepository
 import com.aivanovski.leetcode.android.entity.Problem
 import com.aivanovski.leetcode.android.entity.Questionnaire
 import com.aivanovski.leetcode.android.entity.exception.AppException
 import com.aivanovski.leetcode.android.presentation.quiz.model.Answer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class QuizInteractor(
-    private val api: ApiClient
+    private val api: ApiClient,
+    private val problemRepository: ProblemRepository
 ) {
 
     suspend fun loadQuestionnaire(): Either<AppException, Questionnaire> =
@@ -29,14 +35,11 @@ class QuizInteractor(
             }
         }
 
-    suspend fun loadProblem(
+    fun loadProblem(
         problemId: Int
-    ): Either<AppException, Problem> =
-        either {
-            withContext(Dispatchers.IO) {
-                api.getProblemById(problemId.toString()).bind()
-            }
-        }
+    ): Flow<Either<AppException, Problem>> =
+        problemRepository.getById(problemId)
+            .flowOn(Dispatchers.IO)
 
     suspend fun answerAndLoadMore(
         questionnaireId: String,

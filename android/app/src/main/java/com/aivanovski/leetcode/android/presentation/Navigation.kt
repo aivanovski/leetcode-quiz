@@ -2,18 +2,23 @@ package com.aivanovski.leetcode.android.presentation
 
 import androidx.navigation3.runtime.NavEntry
 import com.aivanovski.leetcode.android.presentation.problemDetails.ProblemDetailsScreen
-import com.aivanovski.leetcode.android.presentation.problemList.ProblemsScreen
+import com.aivanovski.leetcode.android.presentation.problemList.ProblemListScreen
 import com.aivanovski.leetcode.android.presentation.quiz.QuizScreen
+import com.aivanovski.leetcode.android.presentation.quizStart.QuizStartScreen
 import com.aivanovski.leetcode.android.presentation.settings.SettingsScreen
 
 fun navigationRoutes(screen: Screen): NavEntry<Screen> {
     return when (screen) {
         is Screen.ProblemList -> NavEntry(screen) {
-            ProblemsScreen()
+            ProblemListScreen()
         }
 
         is Screen.ProblemDetails -> NavEntry(screen) {
             ProblemDetailsScreen(screen = screen)
+        }
+
+        is Screen.QuizStart -> NavEntry(screen) {
+            QuizStartScreen(screen)
         }
 
         is Screen.Quiz -> NavEntry(screen) {

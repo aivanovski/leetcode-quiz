@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,8 +19,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
+import com.aivanovski.leetcode.android.presentation.core.compose.CornersShape
+import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.HalfMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.toComposeShape
+import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.model.ProblemDescriptionCellModel
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.viewModel.ProblemDescriptionCellViewModel
 
@@ -31,9 +35,12 @@ fun ProblemDescriptionCell(viewModel: ProblemDescriptionCellViewModel) {
     val model = viewModel.model
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = CornersShape.ALL.toComposeShape(),
+        colors = CardDefaults.cardColors(
+            containerColor = AppTheme.theme.colors.cardPrimaryBackground
+        ),
+        modifier = Modifier.padding(horizontal = HalfMargin)
     ) {
         Column(
             modifier = Modifier
@@ -42,9 +49,9 @@ fun ProblemDescriptionCell(viewModel: ProblemDescriptionCellViewModel) {
         ) {
             Text(
                 text = "Description",
-                style = MaterialTheme.typography.titleLarge,
+                style = TextSize.TITLE_LARGE.toTextStyle(),
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = AppTheme.colors.primaryText
             )
 
             Spacer(modifier = Modifier.height(12.dp))

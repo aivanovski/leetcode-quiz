@@ -18,6 +18,7 @@ data class AppColors(
     val primaryIcon: Color,
     val primaryText: Color,
     val secondaryText: Color,
+    val textOnSecondary: Color,
     val errorText: Color,
     val primaryButton: Color,
     val dividerOnPrimary: Color,
@@ -27,14 +28,15 @@ data class AppColors(
 val LightAppColors = AppColors(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40,
+    tertiary = Color(0xFF_f2f4f7),
     background = White,
     primaryIcon = Color.Black,
     primaryText = Color(0xFF_00000d),
     secondaryText = Color(0xFF_888888),
+    textOnSecondary = Color(0xFF_FFFFFF),
     errorText = Color(0xFF_f2473b),
     primaryButton = Color(0xFF_1c7c92),
     dividerOnPrimary = Color(0xFF_e0e0e0),
-    cardPrimaryBackground = Color(0xFF_ffffff),
+    cardPrimaryBackground = Color(0xFF_f2f4f7),
     secondaryBackground = Color(0xFF_ececed)
 )

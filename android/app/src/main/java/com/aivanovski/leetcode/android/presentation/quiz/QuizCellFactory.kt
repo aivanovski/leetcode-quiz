@@ -20,7 +20,7 @@ class QuizCellFactory(
     ): QuestionCardCellViewModel {
         return QuestionCardCellViewModel(
             model = QuestionCardCellModel(
-                id = question.id,
+                id = question.uid,
                 number = "#${question.problemId}",
                 title = problem.title,
                 frontHtmlContent = htmlFormatter.formatProblemHtml(problem.content),

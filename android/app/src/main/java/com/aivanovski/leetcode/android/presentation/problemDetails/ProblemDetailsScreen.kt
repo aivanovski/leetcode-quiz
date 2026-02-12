@@ -16,7 +16,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -27,13 +26,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.presentation.Screen
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
+import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.ShapedSpaceCell
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.ShapedTextCell
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.SpaceCell
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.ShapedSpaceCellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.ShapedTextCellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SpaceCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.ui.ProblemDescriptionCell
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.ui.ProblemHeaderCell
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.ui.ProblemHintsCell
@@ -67,7 +76,10 @@ fun ProblemDetailsScreenContent(
 ) {
     Scaffold(
         topBar = {
-            QuestionDetailsTopBar(onBack = onBack)
+            QuestionDetailsTopBar(
+                title = (state as? ProblemDetailsState.Data)?.title ?: "",
+                onBack = onBack
+            )
         }
     ) { padding ->
         Box(
@@ -89,7 +101,7 @@ fun ProblemDetailsScreenContent(
 
                 is ProblemDetailsState.Data -> {
                     DataContent(
-                        cellViewModels = state.cellViewModels
+                        state = state
                     )
                 }
             }
@@ -99,9 +111,20 @@ fun ProblemDetailsScreenContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuestionDetailsTopBar(onBack: () -> Unit) {
+private fun QuestionDetailsTopBar(
+    title: String,
+    onBack: () -> Unit
+) {
     TopAppBar(
-        title = { Text("Question Details") },
+        title = {
+            Text(
+                text = title,
+                style = TextSize.TITLE_LARGE.toTextStyle(),
+                fontWeight = FontWeight.Bold,
+                color = AppTheme.colors.primaryText,
+                maxLines = 1
+            )
+        },
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
@@ -111,8 +134,7 @@ private fun QuestionDetailsTopBar(onBack: () -> Unit) {
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = AppTheme.materialColors.primaryContainer,
-            titleContentColor = AppTheme.materialColors.onPrimaryContainer
+            containerColor = AppTheme.colors.background,
         )
     )
 }
@@ -142,14 +164,14 @@ private fun ErrorContent(
         ) {
             Text(
                 text = "Error",
-                style = MaterialTheme.typography.headlineMedium,
+                style = TextSize.TITLE_MEDIUM.toTextStyle(),
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = TextSize.BODY_MEDIUM.toTextStyle(),
+                color = AppTheme.colors.errorText
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRetry) {
@@ -160,35 +182,29 @@ private fun ErrorContent(
 }
 
 @Composable
-private fun DataContent(cellViewModels: List<CellViewModel>) {
+private fun DataContent(
+    state: ProblemDetailsState.Data
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Spacer(modifier = Modifier.height(0.dp))
-        }
-
         items(
-            items = cellViewModels,
-            key = { it.model.id }
+            items = state.cellViewModels
         ) { viewModel ->
             RenderCell(viewModel)
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(0.dp))
         }
     }
 }
 
 @Composable
-private fun RenderCell(viewModel: CellViewModel) {
-    when (viewModel) {
-        is ProblemHeaderCellViewModel -> ProblemHeaderCell(viewModel)
-        is ProblemDescriptionCellViewModel -> ProblemDescriptionCell(viewModel)
-        is ProblemHintsCellViewModel -> ProblemHintsCell(viewModel)
+private fun RenderCell(vm: CellViewModel) {
+    when (vm) {
+        is ProblemHeaderCellViewModel -> ProblemHeaderCell(vm)
+        is ProblemDescriptionCellViewModel -> ProblemDescriptionCell(vm)
+        is ProblemHintsCellViewModel -> ProblemHintsCell(vm)
+        is SpaceCellViewModel -> SpaceCell(vm)
+        is ShapedSpaceCellViewModel -> ShapedSpaceCell(vm)
+        is ShapedTextCellViewModel -> ShapedTextCell(vm)
     }
 }

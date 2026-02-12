@@ -12,6 +12,7 @@ data class ProblemItemDto(
     val difficulty: String,
     val url: String,
     val solutions: List<SolutionItemDto>,
+    val questions: List<QuestionItemDto>,
     val likes: Int,
     val dislikes: Int
 )

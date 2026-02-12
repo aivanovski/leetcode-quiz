@@ -27,7 +27,9 @@ val LightTheme = Theme(
         primary = LightAppColors.primary,
         secondary = LightAppColors.secondary,
         tertiary = LightAppColors.tertiary,
-        background = LightAppColors.background
+        background = LightAppColors.background,
+        surface = LightAppColors.cardPrimaryBackground,
+        surfaceContainer = LightAppColors.cardPrimaryBackground
     ),
     typography = Typography()
 )

@@ -3,6 +3,7 @@ package com.aivanovski.leetcode.android.presentation.quiz
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import arrow.core.Either
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.di.GlobalInjector
 import com.aivanovski.leetcode.android.entity.ErrorMessage
@@ -17,14 +18,18 @@ import com.aivanovski.leetcode.android.presentation.core.resources.ResourceProvi
 import com.aivanovski.leetcode.android.presentation.quiz.model.Answer
 import com.aivanovski.leetcode.android.presentation.quiz.model.HintDialogState
 import com.aivanovski.leetcode.android.presentation.quiz.model.QuizState
-import com.aivanovski.leetcode.android.utils.StringUtils
 import com.aivanovski.leetcode.android.utils.formatReadableMessage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class QuizViewModel(
     private val interactor: QuizInteractor,
     private val cellFactory: QuizCellFactory,
@@ -35,6 +40,7 @@ class QuizViewModel(
     val state = MutableStateFlow<QuizState>(QuizState.Loading)
     val isRefreshing = MutableStateFlow(false)
 
+    private val loadProblemChannel = Channel<Int>(capacity = Channel.BUFFERED)
     private val eventProvider = CellEventProviderImpl()
     private var questionnaire: Questionnaire? = null
     private val queuedQuestionIds = HashSet<String>()
@@ -44,6 +50,12 @@ class QuizViewModel(
     private var answers = Answers(0, 0)
 
     init {
+        viewModelScope.launch {
+            loadProblemChannel.receiveAsFlow()
+                .flatMapLatest { problemId -> interactor.loadProblem(problemId) }
+                .collect { data -> onProblemLoaded(data) }
+        }
+
         loadData(isSelectQuestion = true)
     }
 
@@ -83,8 +95,8 @@ class QuizViewModel(
             return
         }
 
-        queuedQuestionIds.add(question.id)
-        answeredQuestionsIds.add(question.id)
+        queuedQuestionIds.add(question.uid)
+        answeredQuestionsIds.add(question.uid)
 
         currentQuestion = findNextQuestion()
 
@@ -95,12 +107,12 @@ class QuizViewModel(
 
         rebuildScreenState()
 
-        postAnswer(questionnaire.id, question.id, answer)
+        postAnswer(questionnaire.id, question.uid, answer)
 
         val problemId = currentQuestion?.problemId
         val problem = problemIdToProblemMap[problemId]
         if (problem == null && problemId != null) {
-            loadProblem(problemId)
+            loadProblemChannel.trySend(problemId)
         }
     }
 
@@ -134,6 +146,10 @@ class QuizViewModel(
         }
     }
 
+    fun navigateBack() {
+        router.navigateBack()
+    }
+
     private fun onQuestionnaireLoaded(
         questionnaire: Questionnaire,
         isSelectQuestion: Boolean
@@ -156,7 +172,7 @@ class QuizViewModel(
         val problemId = currentQuestion?.problemId
         val problem = problemIdToProblemMap[problemId]
         if (problem == null && problemId != null) {
-            loadProblem(problemId)
+            loadProblemChannel.trySend(problemId)
         } else {
             rebuildScreenState()
         }
@@ -184,18 +200,16 @@ class QuizViewModel(
         }
     }
 
-    private fun loadProblem(problemId: Int) {
-        viewModelScope.launch {
-            interactor.loadProblem(problemId).fold(
-                ifLeft = { error ->
-                    state.value = QuizState.Error(createErrorMessage(error))
-                },
-                ifRight = { data ->
-                    problemIdToProblemMap[data.id] = data
-                    rebuildScreenState()
-                }
-            )
-        }
+    private fun onProblemLoaded(data: Either<AppException, Problem>) {
+        data.fold(
+            ifLeft = { error ->
+                state.value = QuizState.Error(createErrorMessage(error))
+            },
+            ifRight = { data ->
+                problemIdToProblemMap[data.id] = data
+                rebuildScreenState()
+            }
+        )
     }
 
     private fun rebuildScreenState() {
@@ -205,7 +219,7 @@ class QuizViewModel(
 
         val answeredIds = questionnaire.answers.map { answer -> answer.questionId }
         val isAllAnswered = questionnaire.questions.all { question ->
-            question.id in answeredQuestionsIds || question.id in answeredIds
+            question.uid in answeredQuestionsIds || question.uid in answeredIds
         }
 
         viewModelScope.launch {
@@ -219,7 +233,7 @@ class QuizViewModel(
                 }
 
                 val questionIndex = questionnaire.questions.indexOfFirst { q ->
-                    q.id == question.id
+                    q.uid == question.uid
                 }
 
                 state.value = QuizState.Card(
@@ -243,7 +257,7 @@ class QuizViewModel(
         val questionnaire = questionnaire ?: return null
 
         return questionnaire.questions.firstOrNull { question ->
-            question.id != currentQuestion?.id && question.id !in answeredQuestionsIds
+            question.uid != currentQuestion?.uid && question.uid !in answeredQuestionsIds
         }
     }
 

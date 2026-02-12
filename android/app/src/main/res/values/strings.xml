@@ -12,13 +12,30 @@
     <string name="good">Good</string>
     <string name="bad">Bad</string>
     <string name="hint">Hint</string>
+    <string name="search">Search</string>
+    <string name="continue_quiz">Continue</string>
     <string name="generic_error_message">An error occurred. Please try again.</string>
     <string name="unknown_error_message">Unknown error has been occurred</string>
     <string name="network_error_message">Network error has been occurred</string>
     <string name="invalid_server_response">Invalid server response</string>
     <string name="http_status_code_with_str">HTTP status code: %s %s</string>
 
+    <!-- Problem List screen -->
+    <string name="search_problems">Search problems...</string>
+    <string name="problems">Problems</string>
+
+    <!-- Problem Details screen -->
+    <string name="algorithm">Algorithm</string>
+    <string name="solutions">Solutions</string>
+    <string name="hints">Hints</string>
+    <string name="solution_with_str">Solution %s</string>
+
+    <!-- Quiz Start screen -->
+    <string name="questions_with_count">%s questions to answer</string>
+    <string name="questions_answered_with_count">%s of %s questions answered</string>
+
     <!-- Quiz screen -->
+    <string name="quiz">Quiz</string>
     <string name="questionnaire_stats_title">You\'ve finished.</string>
     <string name="questionnaire_stats_message">Good: %s\nBad: %s\nTotal answered: %s</string>
     <string name="next_round">Next Round</string>

@@ -25,13 +25,13 @@ fun CenteredBox(
 
 @Composable
 fun CenteredColumn(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.fillMaxSize(),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
     ) {
         content.invoke(this)
     }

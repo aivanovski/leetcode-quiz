@@ -6,18 +6,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.aivanovski.leetcode.android.R
+import com.aivanovski.leetcode.android.presentation.core.compose.CornersShape
+import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.HalfMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.toComposeShape
+import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.model.ProblemHintsCellModel
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.viewModel.ProblemHintsCellViewModel
 
@@ -26,9 +32,12 @@ fun ProblemHintsCell(viewModel: ProblemHintsCellViewModel) {
     val model = viewModel.model
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = CornersShape.ALL.toComposeShape(),
+        colors = CardDefaults.cardColors(
+            containerColor = AppTheme.theme.colors.cardPrimaryBackground
+        ),
+        modifier = Modifier.padding(horizontal = HalfMargin)
     ) {
         Column(
             modifier = Modifier
@@ -36,10 +45,10 @@ fun ProblemHintsCell(viewModel: ProblemHintsCellViewModel) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Hints",
-                style = MaterialTheme.typography.titleLarge,
+                text = stringResource(R.string.hints),
+                style = TextSize.TITLE_LARGE.toTextStyle(),
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = AppTheme.colors.primaryText
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -52,14 +61,14 @@ fun ProblemHintsCell(viewModel: ProblemHintsCellViewModel) {
                 ) {
                     Text(
                         text = "${index + 1}. ",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = TextSize.BODY_MEDIUM.toTextStyle(),
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = AppTheme.colors.primaryText
                     )
                     Text(
                         text = hint,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = TextSize.BODY_MEDIUM.toTextStyle(),
+                        color = AppTheme.colors.primaryText
                     )
                 }
                 if (index < model.hints.size - 1) {

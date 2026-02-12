@@ -10,7 +10,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -18,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.ui.NavDisplay
 import com.aivanovski.leetcode.android.presentation.Screen
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
@@ -29,11 +29,13 @@ import com.aivanovski.leetcode.android.presentation.root.model.NavBackStack
 
 @Composable
 fun RootScreen(viewModel: RootViewModel) {
-    val backStack by viewModel.backStack.collectAsState()
-    val selectedNavigationItem by viewModel.selectedBottomBarIndex.collectAsState()
+    val backStack by viewModel.backStack.collectAsStateWithLifecycle()
+    val isBottomBarVisible by viewModel.isBottomBarVisible.collectAsStateWithLifecycle()
+    val selectedNavigationItem by viewModel.selectedBottomBarIndex.collectAsStateWithLifecycle()
 
     RootScreenContent(
         backStack = backStack,
+        isBottomBarVisible = isBottomBarVisible,
         selectedBottomBarIndex = selectedNavigationItem,
         onBottomBarClick = viewModel::onBottomBarClicked,
         onBackClick = viewModel::onBackClick
@@ -61,6 +63,7 @@ fun RootScreen(viewModel: RootViewModel) {
 @Composable
 private fun RootScreenContent(
     backStack: NavBackStack,
+    isBottomBarVisible: Boolean,
     selectedBottomBarIndex: Int,
     onBottomBarClick: (index: Int) -> Unit,
     onBackClick: () -> Unit
@@ -72,10 +75,12 @@ private fun RootScreenContent(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            BottomBarContent(
-                selectedIndex = selectedBottomBarIndex,
-                onBottomBarClick = onBottomBarClick
-            )
+            if (isBottomBarVisible) {
+                BottomBarContent(
+                    selectedIndex = selectedBottomBarIndex,
+                    onBottomBarClick = onBottomBarClick
+                )
+            }
         }
     ) { padding ->
         Surface(
@@ -121,6 +126,7 @@ fun RootScreenPreview() {
     ThemedScreenPreview(theme = LightTheme) {
         RootScreenContent(
             backStack = NavBackStack.from(Screen.ProblemList),
+            isBottomBarVisible = true,
             selectedBottomBarIndex = 0,
             onBottomBarClick = {},
             onBackClick = {}

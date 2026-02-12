@@ -34,6 +34,7 @@ class ProblemDetailsViewModel(
                 },
                 ifRight = { data ->
                     state.value = ProblemDetailsState.Data(
+                        title = data.problem.title,
                         cellViewModels = cellFactory.createCells(data)
                     )
                 }

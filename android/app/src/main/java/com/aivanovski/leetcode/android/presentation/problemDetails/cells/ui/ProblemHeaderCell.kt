@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,8 +20,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.aivanovski.leetcode.android.presentation.core.compose.CornersShape
+import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.HalfMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.toComposeShape
+import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.model.ProblemHeaderCellModel
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.viewModel.ProblemHeaderCellViewModel
 
@@ -31,9 +36,12 @@ fun ProblemHeaderCell(viewModel: ProblemHeaderCellViewModel) {
     val model = viewModel.model
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = CornersShape.ALL.toComposeShape(),
+        colors = CardDefaults.cardColors(
+            containerColor = AppTheme.theme.colors.cardPrimaryBackground
+        ),
+        modifier = Modifier.padding(horizontal = HalfMargin)
     ) {
         Column(
             modifier = Modifier
@@ -47,8 +55,8 @@ fun ProblemHeaderCell(viewModel: ProblemHeaderCellViewModel) {
             ) {
                 Text(
                     text = model.number,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = TextSize.TITLE_MEDIUM.toTextStyle(),
+                    color = AppTheme.colors.primaryText,
                     fontWeight = FontWeight.Bold
                 )
                 DifficultyBadge(difficulty = model.difficulty)
@@ -58,17 +66,17 @@ fun ProblemHeaderCell(viewModel: ProblemHeaderCellViewModel) {
 
             Text(
                 text = model.title,
-                style = MaterialTheme.typography.headlineMedium,
+                style = TextSize.TITLE_LARGE.toTextStyle(),
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = AppTheme.colors.primaryText
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = model.categoryTitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = TextSize.BODY_MEDIUM.toTextStyle(),
+                color = AppTheme.colors.primaryText
             )
         }
     }
@@ -76,25 +84,29 @@ fun ProblemHeaderCell(viewModel: ProblemHeaderCellViewModel) {
 
 @Composable
 private fun DifficultyBadge(difficulty: String) {
-    val (color, textColor) = when (difficulty.lowercase()) {
-        "easy" -> Color(0xFF10B981) to Color.White
-        "medium" -> Color(0xFFF59E0B) to Color.White
-        "hard" -> Color(0xFFEF4444) to Color.White
-        else ->
-            MaterialTheme.colorScheme.surfaceVariant to
-                MaterialTheme.colorScheme.onSurfaceVariant
+    val color = when (difficulty.lowercase()) {
+        "easy" -> Color(0xFF10B981)
+        "medium" -> Color(0xFFF59E0B)
+        "hard" -> Color(0xFFEF4444)
+        else -> Color.Black
     }
 
     Box(
         modifier = Modifier
-            .background(color = color, shape = RoundedCornerShape(8.dp))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .background(
+                color = color,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(
+                horizontal = 16.dp,
+                vertical = 8.dp
+            )
     ) {
         Text(
             text = difficulty,
-            style = MaterialTheme.typography.labelLarge,
+            style = TextSize.BODY_MEDIUM.toTextStyle(),
             fontWeight = FontWeight.Bold,
-            color = textColor
+            color = AppTheme.colors.textOnSecondary
         )
     }
 }

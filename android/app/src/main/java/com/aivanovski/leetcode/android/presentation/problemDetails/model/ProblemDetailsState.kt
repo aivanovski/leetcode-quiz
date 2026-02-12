@@ -16,6 +16,7 @@ sealed interface ProblemDetailsState {
 
     @Immutable
     data class Data(
+        val title: String,
         val cellViewModels: List<CellViewModel>
     ) : ProblemDetailsState
 }
