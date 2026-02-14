@@ -1,6 +1,6 @@
 package com.github.ai.leetcodequiz.data.json
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
+import com.fasterxml.jackson.core.{JsonFactory, JsonParser, JsonToken}
 import com.github.ai.leetcodequiz.data.db.model.ProblemId
 import com.github.ai.leetcodequiz.entity.{Difficulty, Problem}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
@@ -24,10 +24,12 @@ class StreamingProblemParser {
           ZIO
             .attemptBlocking {
               val parser = jsonFactory.createParser(inputStream)
+
               if (parser.nextToken() != JsonToken.START_ARRAY) {
                 parser.close()
                 throw new IllegalArgumentException("Expected JSON array at root")
               }
+
               parser
             }
             .mapError(DomainError(_))
@@ -38,7 +40,8 @@ class StreamingProblemParser {
           ZIO
             .attemptBlocking {
               if (p.nextToken() == JsonToken.START_OBJECT) {
-                Some((parseProblemObject(p), p))
+                parseProblemObject(p)
+                  .map(problem => (problem, p))
               } else {
                 None
               }
@@ -48,10 +51,9 @@ class StreamingProblemParser {
       )
 
   private def parseProblemObject(
-    parser: com.fasterxml.jackson.core.JsonParser
-  ): Problem = {
+    parser: JsonParser
+  ): Option[Problem] = {
     var questionId: Option[String] = None
-    var frontendQuestionId: Option[String] = None
     var titleEn: Option[String] = None
     var contentEn: Option[String] = None
     var category: Option[String] = None
@@ -62,13 +64,12 @@ class StreamingProblemParser {
       val fieldName = parser.currentName()
       if (fieldName == null)
         return buildProblem(
-          questionId,
-          frontendQuestionId,
-          titleEn,
-          contentEn,
-          category,
-          urlEn,
-          difficultyEn
+          questionId = questionId,
+          titleEn = titleEn,
+          contentEn = contentEn,
+          category = category,
+          urlEn = urlEn,
+          difficultyEn = difficultyEn
         )
 
       parser.nextToken()
@@ -79,8 +80,6 @@ class StreamingProblemParser {
         fieldName match {
           case "question_id" =>
             questionId = Option(parser.getValueAsString)
-          case "frontend_question_id" =>
-            frontendQuestionId = Option(parser.getValueAsString)
           case "title_en" =>
             titleEn = Option(parser.getValueAsString)
           case "content_en" =>
@@ -101,7 +100,6 @@ class StreamingProblemParser {
 
     buildProblem(
       questionId,
-      frontendQuestionId,
       titleEn,
       contentEn,
       category,
@@ -112,35 +110,35 @@ class StreamingProblemParser {
 
   private def buildProblem(
     questionId: Option[String],
-    frontendQuestionId: Option[String],
     titleEn: Option[String],
     contentEn: Option[String],
     category: Option[String],
     urlEn: Option[String],
     difficultyEn: Option[String]
-  ): Problem = {
-    val idStr = frontendQuestionId.orElse(questionId).getOrElse("0")
-    val id =
-      try {
-        ProblemId(idStr.toLong)
-      } catch {
-        case _: NumberFormatException => ProblemId(0L)
-      }
+  ): Option[Problem] = {
+    val idOption = questionId
+      .flatMap(_.toLongOption)
+      .map(ProblemId(_))
+    if (idOption.isEmpty) {
+      return None
+    }
 
     val difficulty = difficultyEn
       .flatMap(Difficulty.from)
       .getOrElse(Difficulty.UNDEFINED)
 
-    Problem(
-      id = id,
-      title = titleEn.getOrElse(""),
-      content = contentEn.getOrElse(""),
-      category = category.getOrElse(""),
-      url = urlEn.getOrElse(""),
-      difficulty = difficulty,
-      hints = List.empty,
-      likes = 0,
-      dislikes = 0
+    Some(
+      Problem(
+        id = idOption.get,
+        title = titleEn.getOrElse(""),
+        content = contentEn.getOrElse(""),
+        category = category.getOrElse(""),
+        url = urlEn.getOrElse(""),
+        difficulty = difficulty,
+        hints = List.empty,
+        likes = 0,
+        dislikes = 0
+      )
     )
   }
 }
