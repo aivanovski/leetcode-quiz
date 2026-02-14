@@ -21,12 +21,13 @@ import com.github.ai.leetcodequiz.data.db.repository.{
   UserRepository
 }
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
-import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser}
+import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser, StreamingProblemParser}
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob, SyncSolutionsJob}
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
   CreateNewQuestionnaireUseCase,
+  DownloadFileUseCase,
   GetQuestionnaireStatsUseCase,
   GetRemainedQuestionsUseCase,
   SelectNextQuestionsUseCase,
@@ -44,6 +45,7 @@ import com.github.ai.leetcodequiz.presentation.controllers.{
   QuestionnaireController
 }
 import zio.{ZIO, ZLayer}
+import zio.http.Client
 
 object Layers {
 
@@ -80,7 +82,7 @@ object Layers {
   val scheduledJobService = ZLayer.fromFunction(ScheduledJobService(_))
 
   // Scheduled jobs
-  val syncProblemsJob = ZLayer.fromFunction(SyncProblemsJob(_, _, _, _, _))
+  val syncProblemsJob = ZLayer.fromFunction(SyncProblemsJob(_, _, _, _, _, _))
   val syncQuestionsJob = ZLayer.fromFunction(SyncQuestionsJob(_, _, _, _, _))
   val syncSolutionsJob = ZLayer.fromFunction(SyncSolutionsJob(_, _, _, _, _))
 
@@ -93,6 +95,7 @@ object Layers {
   val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _))
   val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_, _, _))
   val getQuestionnaireStatsUseCase = ZLayer.fromFunction(GetQuestionnaireStatsUseCase(_, _))
+  val downloadFileUseCase = ZLayer.fromFunction(DownloadFileUseCase(_, _))
 
   // Controllers
   val problemController = ZLayer.fromFunction(ProblemController(_, _, _, _))
@@ -104,5 +107,6 @@ object Layers {
   // Other
   val jsonSerializer = ZLayer.succeed(JsonSerializer())
   val problemParser = ZLayer.fromFunction(ProblemParser(_))
+  val streamingProblemParser = ZLayer.succeed(StreamingProblemParser())
   val fileSystemProvider = ZLayer.succeed[FileSystemProvider](FileSystemProviderImpl())
 }

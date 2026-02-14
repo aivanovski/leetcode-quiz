@@ -10,18 +10,22 @@ import com.github.ai.leetcodequiz.entity.exception.{
   FileSystemError
 }
 import zio.{IO, ZIO}
+import zio.Scope
 import zio.direct.{defer, run}
 
-import java.io.{Reader, StringReader}
+import java.io.{InputStream, Reader, StringReader}
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 
 trait FileSystemProvider {
   def getDirPath(path: RelativePath): IO[FileSystemError, AbsolutePath]
+  def resolveFile(path: RelativePath): IO[FileSystemError, AbsolutePath]
+  def ensureDir(path: RelativePath): IO[FileSystemError, AbsolutePath]
   def remove(path: RelativePath): IO[FileSystemError, Unit]
   def readContent(path: RelativePath): IO[FileSystemError, String]
   def reader(path: RelativePath): IO[FileSystemError, Reader]
+  def inputStream(path: RelativePath): ZIO[zio.Scope, FileSystemError, InputStream]
   def listFiles(path: RelativePath): IO[FileSystemError, List[RelativePath]]
   def listFileTree(path: RelativePath, maxDepth: Int): IO[FileSystemError, List[List[RelativePath]]]
 }
@@ -35,6 +39,30 @@ class FileSystemProviderImpl(
   ): IO[FileSystemError, AbsolutePath] = defer {
     val root = getRootDirPath().run
     AbsolutePath(root.basePath, path.relativePath)
+  }
+
+  override def resolveFile(
+    path: RelativePath
+  ): IO[FileSystemError, AbsolutePath] =
+    convertToAbsolutePath(path)
+
+  override def ensureDir(
+    path: RelativePath
+  ): IO[FileSystemError, AbsolutePath] = defer {
+    val root = getRootDirPath().run
+
+    val absPath = convertToAbsolutePath(path).run
+
+    if (!Files.exists(absPath.toPath())) {
+      ZIO
+        .attempt {
+          Files.createDirectories(absPath.toPath())
+        }
+        .mapError(FileSystemError(_))
+        .run
+    }
+
+    absPath
   }
 
   override def remove(
@@ -76,6 +104,15 @@ class FileSystemProviderImpl(
     val content = readContent(path).run
     StringReader(content)
   }
+
+  override def inputStream(path: RelativePath): ZIO[Scope, FileSystemError, InputStream] =
+    ZIO.fromAutoCloseable(
+      resolveFile(path).flatMap { absPath =>
+        ZIO
+          .attempt(Files.newInputStream(absPath.toPath()))
+          .mapError(FileSystemError(_))
+      }
+    )
 
   override def listFiles(path: RelativePath): IO[FileSystemError, List[RelativePath]] = defer {
     val dir = convertToAbsolutePath(path).run

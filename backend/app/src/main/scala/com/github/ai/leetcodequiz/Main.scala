@@ -83,6 +83,7 @@ object Main extends ZIOAppDefault {
 
         // Use-Cases
         Layers.cloneGithubRepositoryUseCase,
+        Layers.downloadFileUseCase,
         Layers.createNewQuestionnaireUseCase,
         Layers.submitQuestionAnswerUseCase,
         Layers.setupTestDataUseCase,
@@ -131,7 +132,9 @@ object Main extends ZIOAppDefault {
         Layers.database,
         Layers.jsonSerializer,
         Layers.fileSystemProvider,
+        Client.default,
         Layers.problemParser,
+        Layers.streamingProblemParser,
         Server.live,
         ZLayer.succeed(serverConfig)
       )
