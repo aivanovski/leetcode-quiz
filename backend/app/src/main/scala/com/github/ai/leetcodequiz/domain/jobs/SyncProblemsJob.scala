@@ -3,22 +3,25 @@ package com.github.ai.leetcodequiz.domain.jobs
 import com.github.ai.leetcodequiz.data.db.model.{DataSyncEntity, ProblemId, SyncType, SyncUid}
 import com.github.ai.leetcodequiz.data.db.repository.{DataSyncRepository, ProblemRepository}
 import com.github.ai.leetcodequiz.data.file.FileSystemProvider
-import com.github.ai.leetcodequiz.data.json.ProblemParser
-import com.github.ai.leetcodequiz.domain.usecases.CloneGithubRepositoryUseCase
+import com.github.ai.leetcodequiz.data.json.StreamingProblemParser
+import com.github.ai.leetcodequiz.domain.usecases.{
+  CloneGithubRepositoryUseCase,
+  DownloadFileUseCase
+}
 import com.github.ai.leetcodequiz.entity.{Problem, RelativePath}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
 import zio.direct.*
 
 import java.time.{Duration, LocalDateTime, ZoneOffset}
-import java.util.UUID
 
 class SyncProblemsJob(
   private val fileSystemProvider: FileSystemProvider,
   private val syncRepository: DataSyncRepository,
   private val problemRepository: ProblemRepository,
-  private val problemParser: ProblemParser,
-  private val cloneRepositoryUseCase: CloneGithubRepositoryUseCase
+  private val problemParser: StreamingProblemParser,
+  private val cloneRepositoryUseCase: CloneGithubRepositoryUseCase,
+  private val downloadFileUseCase: DownloadFileUseCase
 ) extends ScheduledJob(
       syncRepository = syncRepository,
       interval = 12.hours,
@@ -29,9 +32,8 @@ class SyncProblemsJob(
     val syncUid = onSyncStart().run
 
     val lastSync = syncRepository.getLatestSync(SyncType.PROBLEMS).run
-    val destinationDirPath = RelativePath(s"github/${syncUid.toString}")
-
-    val timeThreshold = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
+    val destinationDirPath = RelativePath(s"problems/${syncUid.toString}")
+    val destinationFile = RelativePath(destinationDirPath.relativePath + "/result.json")
 
     ZIO
       .logInfo(
@@ -42,17 +44,24 @@ class SyncProblemsJob(
       )
       .run
 
-    val repoDir = cloneRepositoryUseCase
-      .cloneRepository(
-        repositoryUrl = "https://github.com/aivanovski/leetcode-api.git",
-        destinationDirPath = destinationDirPath
+    downloadFileUseCase
+      .downloadFile(
+        url = "https://raw.githubusercontent.com/doocs/leetcode/main/solution/result.json",
+        destinationDir = destinationDirPath,
+        destinationFile = destinationFile
       )
       .run
 
-    val problemsFile = RelativePath(s"${repoDir.path}/data/leetcode_questions.json")
-    val content = fileSystemProvider.readContent(problemsFile).run
-
-    val remoteProblems = problemParser.parse(content).run
+    val remoteProblems = ZIO.scoped {
+      fileSystemProvider
+        .inputStream(destinationFile)
+        .flatMap(stream =>
+          problemParser
+            .parseStream(stream)
+            .runCollect
+            .map(_.toList)
+        )
+    }.run
     val localProblems = problemRepository.getAll().run
 
     syncProblemsWithDatabase(

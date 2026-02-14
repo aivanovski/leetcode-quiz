@@ -3,11 +3,11 @@ package com.github.ai.leetcodequiz.data.json
 import com.github.ai.leetcodequiz.data.db.model.ProblemId
 import com.github.ai.leetcodequiz.entity.{Difficulty, Problem}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
-import com.github.ai.leetcodequiz.utils.parseJson
 import zio.*
 import zio.direct.*
 import zio.json.*
 
+// The parser for leetcode problems in https://github.com/noworneverev/leetcode-api
 class ProblemParser(
   private val jsonSerializer: JsonSerializer
 ) {

@@ -91,7 +91,10 @@ lazy val app = project
       "org.apache.commons" % "commons-csv" % "1.10.0",
 
       // Json
-      "dev.zio" %% "zio-json" % zioJsonVersion
+      "dev.zio" %% "zio-json" % zioJsonVersion,
+
+      // Jackson for streaming JSON parsing
+      "com.fasterxml.jackson.core" % "jackson-core" % "2.18.2"
     )
   )
 
