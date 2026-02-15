@@ -5,7 +5,7 @@ import com.github.ai.leetcodequiz.entity.exception.{AuthError, DomainError}
 import com.github.ai.leetcodequiz.utils.*
 
 import java.util.Base64
-import zio.http.{Body, Header, Headers, Response, Status}
+import zio.http.{Body, Header, Headers, MediaType, Response, Status}
 import zio.json.*
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -45,7 +45,12 @@ extension (exception: DomainError) {
         Status.BadRequest
       },
       headers = if (isAuthError) {
-        Headers(Header.WWWAuthenticate.Bearer(realm = "Access"))
+        Headers(
+          List(
+            Header.WWWAuthenticate.Bearer(realm = "Access"),
+            Header.ContentType(MediaType.application.json)
+          )
+        )
       } else {
         Headers.empty
       },
