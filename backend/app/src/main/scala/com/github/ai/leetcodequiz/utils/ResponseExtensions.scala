@@ -52,7 +52,11 @@ extension (exception: DomainError) {
           )
         )
       } else {
-        Headers.empty
+        Headers(
+          List(
+            Header.ContentType(MediaType.application.json)
+          )
+        )
       },
       body = Body.fromString(response.toJsonPretty, UTF_8)
     )
