@@ -13,7 +13,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import java.io.IOException
-import kotlinx.serialization.SerializationException
 import timber.log.Timber
 
 suspend inline fun <reified Req, reified Resp> HttpClient.httpPost(
@@ -44,7 +43,7 @@ suspend inline fun <reified Req, reified Resp> HttpClient.send(
             if (!response.status.isSuccess()) {
                 val errorBody = try {
                     response.body<ErrorMessageDto>()
-                } catch (err: SerializationException) {
+                } catch (err: Exception) {
                     Timber.d(err, "Failed to parse error response:")
                     null
                 }

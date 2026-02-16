@@ -3,12 +3,16 @@ package com.aivanovski.leetcode.android.presentation.settings
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.data.api.ServerUrls
 import com.aivanovski.leetcode.android.data.settings.Settings
+import com.aivanovski.leetcode.android.presentation.core.compose.TextColor
+import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellEventProvider
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.DropDownCellModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.SwitchCellModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.TwoTextCellModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.DropDownCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SwitchCellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.TwoTextCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.resources.ResourceProvider
 import io.ktor.client.plugins.logging.LogLevel
 
@@ -67,13 +71,29 @@ class SettingsCellFactory(
             )
         )
 
+        cells.add(
+            TwoTextCellViewModel(
+                model = TwoTextCellModel(
+                    id = SettingsCellId.LOGOUT.name,
+                    primaryText = resources.getString(R.string.log_out),
+                    secondaryText = resources.getString(R.string.log_out_description),
+                    primaryTextSize = TextSize.TITLE_MEDIUM,
+                    secondaryTextSize = TextSize.BODY_MEDIUM,
+                    primaryTextColor = TextColor.ERROR,
+                    secondaryTextColor = TextColor.SECONDARY
+                ),
+                eventProvider = eventProvider
+            )
+        )
+
         return cells
     }
 
     enum class SettingsCellId {
         SERVER_URL,
         HTTP_LOG_LEVEL,
-        SSL_CERTIFICATE_SWITCH;
+        SSL_CERTIFICATE_SWITCH,
+        LOGOUT;
 
         val id = name
     }

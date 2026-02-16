@@ -12,9 +12,10 @@ class ProblemListInteractor(
     private val api: ApiClient
 ) {
 
-    suspend fun getProblems(): Either<AppException, List<Problem>> = either {
-        withContext(Dispatchers.IO) {
-            api.getProblems().bind()
+    suspend fun getProblems(): Either<AppException, List<Problem>> =
+        either {
+            withContext(Dispatchers.IO) {
+                api.getProblems().bind()
+            }
         }
-    }
 }

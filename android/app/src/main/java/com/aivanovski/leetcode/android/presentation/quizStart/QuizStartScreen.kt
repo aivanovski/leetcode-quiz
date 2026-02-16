@@ -76,7 +76,7 @@ fun QuizStartScreen(
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = AppTheme.colors.background,
+                    containerColor = AppTheme.colors.background
                 )
             )
         }
@@ -153,7 +153,7 @@ fun QuizStartScreen_DataPreview() {
         QuizStartScreen(
             state = newDataState(),
             onIntent = {},
-            isRefreshing = false,
+            isRefreshing = false
         )
     }
 }

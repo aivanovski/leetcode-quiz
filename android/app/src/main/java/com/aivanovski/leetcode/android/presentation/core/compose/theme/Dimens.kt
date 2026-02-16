@@ -21,6 +21,7 @@ val GroupTwoLineItemHeight = 52.dp
 val GroupThreeLineItemHeight = 68.dp
 
 val CardCornerSize = 16.dp
+val CardElevation = 4.dp
 val DialogCardCornerSize = 16.dp
 
 val SmallIconSize = 24.dp

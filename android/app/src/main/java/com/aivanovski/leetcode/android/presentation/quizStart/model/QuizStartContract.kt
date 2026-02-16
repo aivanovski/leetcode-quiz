@@ -7,7 +7,9 @@ sealed interface QuizStartIntent {
     data object Initialize : QuizStartIntent
     data object OnRefresh : QuizStartIntent
     data object OnStartClick : QuizStartIntent
-    data class OnErrorAction(val actionId: Int) : QuizStartIntent
+    data class OnErrorAction(
+        val actionId: Int
+    ) : QuizStartIntent
 }
 
 @Immutable

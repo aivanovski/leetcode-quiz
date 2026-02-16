@@ -24,16 +24,20 @@ import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.data.api.ServerUrls
 import com.aivanovski.leetcode.android.presentation.Screen
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
+import com.aivanovski.leetcode.android.presentation.core.compose.TextColor
 import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.DropDownCellModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.SwitchCellModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.TwoTextCellModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.DropDownCell
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.SpaceCell
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.SwitchCell
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.TwoTextCell
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.DropDownCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SpaceCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SwitchCellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.TwoTextCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.PreviewEventProvider
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
@@ -105,6 +109,7 @@ private fun RenderCell(viewModel: CellViewModel) {
         is SpaceCellViewModel -> SpaceCell(viewModel)
         is SwitchCellViewModel -> SwitchCell(viewModel)
         is DropDownCellViewModel -> DropDownCell(viewModel)
+        is TwoTextCellViewModel -> TwoTextCell(viewModel)
         else -> throw IllegalArgumentException("Unknown cell: $viewModel")
     }
 }
@@ -160,6 +165,18 @@ private fun newDataState() =
                     description = stringResource(R.string.validate_ssl_certificate_description),
                     isChecked = true,
                     isEnabled = true
+                ),
+                eventProvider = PreviewEventProvider
+            ),
+            TwoTextCellViewModel(
+                model = TwoTextCellModel(
+                    id = "logout",
+                    primaryText = stringResource(R.string.log_out),
+                    secondaryText = stringResource(R.string.log_out_description),
+                    primaryTextSize = TextSize.BODY_LARGE,
+                    secondaryTextSize = TextSize.BODY_MEDIUM,
+                    primaryTextColor = TextColor.ERROR,
+                    secondaryTextColor = TextColor.SECONDARY
                 ),
                 eventProvider = PreviewEventProvider
             )

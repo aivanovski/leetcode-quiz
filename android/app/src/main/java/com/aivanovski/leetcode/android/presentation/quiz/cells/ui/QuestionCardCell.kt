@@ -1,6 +1,5 @@
 package com.aivanovski.leetcode.android.presentation.quiz.cells.ui
 
-import android.R
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
@@ -134,11 +133,7 @@ fun QuestionCardCell(viewModel: QuestionCardCellViewModel) {
             }
         }
     }
-
-
 }
-
-
 
 @Preview
 @Composable

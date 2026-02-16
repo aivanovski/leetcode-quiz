@@ -10,8 +10,6 @@ import com.aivanovski.leetcode.android.entity.exception.AppException
 import com.aivanovski.leetcode.android.presentation.quiz.model.Answer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
@@ -35,9 +33,7 @@ class QuizInteractor(
             }
         }
 
-    fun loadProblem(
-        problemId: Int
-    ): Flow<Either<AppException, Problem>> =
+    fun loadProblem(problemId: Int): Flow<Either<AppException, Problem>> =
         problemRepository.getById(problemId)
             .flowOn(Dispatchers.IO)
 

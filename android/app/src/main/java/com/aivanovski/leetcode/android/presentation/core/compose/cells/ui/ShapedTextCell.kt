@@ -22,7 +22,6 @@ import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.ElementMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.HalfMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
-import com.aivanovski.leetcode.android.presentation.core.compose.theme.SmallMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.toComposeShape
 import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 

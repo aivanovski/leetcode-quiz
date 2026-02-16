@@ -8,28 +8,36 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class RootViewModel(
+    private val interactor: RootInteractor,
     private val router: Router
 ) : ViewModel() {
 
-    val backStack = router.flow()
+    val backStack = router.getNavigationFlow()
+    val events = router.getEventsFlow()
+
     val selectedBottomBarIndex = MutableStateFlow(0)
-    val isBottomBarVisible = MutableStateFlow(true)
+    val isBottomBarVisible = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
-            router.flow().collect { navStack ->
-                val isVisible = when (navStack.stack.last()) {
-                    is Screen.Quiz -> false
-                    else -> true
-                }
+            router.getNavigationFlow().collect { navStack ->
+                val currentScreen = navStack.stack.lastOrNull()
 
-                isBottomBarVisible.value = isVisible
+                isBottomBarVisible.value = (currentScreen != null
+                    && currentScreen != Screen.Quiz
+                    && currentScreen != Screen.Login)
             }
         }
     }
 
     fun start() {
-        router.setRoot(determineScreen(selectedBottomBarIndex.value))
+        val startScreen = if (interactor.isLoggedIn()) {
+            Screen.QuizStart
+        } else {
+            Screen.Login
+        }
+
+        router.setRoot(startScreen)
     }
 
     fun onBottomBarClicked(index: Int) {

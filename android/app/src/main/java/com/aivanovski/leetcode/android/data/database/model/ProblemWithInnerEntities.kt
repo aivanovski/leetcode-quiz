@@ -14,5 +14,5 @@ data class ProblemWithInnerEntities(
     val questions: List<QuestionEntity>,
 
     @Relation(parentColumn = "id", entityColumn = "problem_id")
-    val hints: List<HintEntity>,
+    val hints: List<HintEntity>
 )

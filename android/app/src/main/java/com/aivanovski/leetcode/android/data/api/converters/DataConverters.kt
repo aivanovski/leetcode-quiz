@@ -1,10 +1,12 @@
 package com.aivanovski.leetcode.android.data.api.converters
 
+import arrow.core.getOrElse
 import com.aivanovski.leetcode.android.entity.Problem
 import com.aivanovski.leetcode.android.entity.Question
 import com.aivanovski.leetcode.android.entity.QuestionAnswer
 import com.aivanovski.leetcode.android.entity.Questionnaire
 import com.aivanovski.leetcode.android.entity.QuestionnaireListItem
+import com.aivanovski.leetcode.android.utils.Base64Utils
 import com.github.ai.leetcodequiz.api.ProblemItemDto
 import com.github.ai.leetcodequiz.api.ProblemsItemDto
 import com.github.ai.leetcodequiz.api.QuestionItemDto
@@ -40,15 +42,13 @@ fun ProblemItemDto.toProblem(): Problem =
         hints = hints,
         categoryTitle = categoryTitle,
         difficulty = difficulty,
-        solutions = solutions.map { solution ->
-            Base64.decodeToByteString(
-                solution.contentBase64.encodeToByteString()
-            ).decodeToString()
+        solutions = solutions.mapNotNull { solution ->
+            Base64Utils.decode(solution.contentBase64).getOrNull()
         },
         questions = questions.map { it.toQuestion() },
         url = url,
         likes = likes.toLong(),
-        dislikes = dislikes.toLong(),
+        dislikes = dislikes.toLong()
     )
 
 fun QuestionnaireItemDto.toQuestionnaire(): Questionnaire =

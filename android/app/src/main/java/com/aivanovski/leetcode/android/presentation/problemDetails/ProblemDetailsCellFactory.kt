@@ -81,9 +81,7 @@ class ProblemDetailsCellFactory(
         )
     }
 
-    private fun createDescriptionCells(
-        data: ProblemDetailsData,
-    ): List<CellViewModel> {
+    private fun createDescriptionCells(data: ProblemDetailsData): List<CellViewModel> {
         return listOf(
             SpaceCellViewModel(
                 model = SpaceCellModel(
@@ -117,9 +115,7 @@ class ProblemDetailsCellFactory(
         )
     }
 
-    private fun createAlgorithmCells(
-        problem: Problem
-    ): List<CellViewModel> {
+    private fun createAlgorithmCells(problem: Problem): List<CellViewModel> {
         return buildList {
             add(
                 SpaceCellViewModel(
@@ -256,7 +252,6 @@ class ProblemDetailsCellFactory(
                     )
                 )
             )
-
         }
     }
 }

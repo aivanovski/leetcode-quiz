@@ -14,7 +14,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -99,7 +98,7 @@ private fun ProblemListScreen(
                             text = stringResource(R.string.problems),
                             style = TextSize.TITLE_LARGE.toTextStyle(),
                             fontWeight = FontWeight.Bold,
-                            color = AppTheme.colors.primaryText,
+                            color = AppTheme.colors.primaryText
                         )
                     },
                     actions = {
@@ -205,10 +204,7 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun DataContent(
-    state: ProblemListState.Data
-) {
-
+private fun DataContent(state: ProblemListState.Data) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -252,6 +248,6 @@ private fun newDataState() =
     ProblemListState.Data(
         cellViewModels = listOf(
             newProblemCellViewModel(),
-            newProblemCellViewModel(),
+            newProblemCellViewModel()
         )
     )

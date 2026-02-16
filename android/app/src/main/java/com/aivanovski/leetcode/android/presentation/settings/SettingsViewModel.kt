@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.aivanovski.leetcode.android.data.settings.Settings
 import com.aivanovski.leetcode.android.di.GlobalInjector
+import com.aivanovski.leetcode.android.presentation.Screen
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellEventProvider
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellEventProviderImpl
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.DropDownCellEvent
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.SwitchCellEvent
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.TwoTextCellEvent
 import com.aivanovski.leetcode.android.presentation.core.navigation.Router
 import com.aivanovski.leetcode.android.presentation.settings.SettingsCellFactory.SettingsCellId
 import com.aivanovski.leetcode.android.presentation.settings.model.SettingsState
@@ -59,6 +61,15 @@ class SettingsViewModel(
                 is SwitchCellEvent.OnCheckChanged -> {
                     settings.isValidateSslCertificate = event.isChecked
                     interactor.reCreateHttpClient()
+                }
+
+                is TwoTextCellEvent.OnClick -> {
+                    when (event.cellId) {
+                        SettingsCellId.LOGOUT.id -> {
+                            interactor.logout()
+                            router.setRoot(Screen.Login)
+                        }
+                    }
                 }
             }
         }

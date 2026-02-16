@@ -76,7 +76,7 @@ fun ProblemDetailsScreenContent(
 ) {
     Scaffold(
         topBar = {
-            QuestionDetailsTopBar(
+            ScreenTopBar(
                 title = (state as? ProblemDetailsState.Data)?.title ?: "",
                 onBack = onBack
             )
@@ -111,7 +111,7 @@ fun ProblemDetailsScreenContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuestionDetailsTopBar(
+private fun ScreenTopBar(
     title: String,
     onBack: () -> Unit
 ) {
@@ -129,12 +129,12 @@ private fun QuestionDetailsTopBar(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
+                    contentDescription = stringResource(R.string.back)
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = AppTheme.colors.background,
+            containerColor = AppTheme.colors.background
         )
     )
 }
@@ -182,9 +182,7 @@ private fun ErrorContent(
 }
 
 @Composable
-private fun DataContent(
-    state: ProblemDetailsState.Data
-) {
+private fun DataContent(state: ProblemDetailsState.Data) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

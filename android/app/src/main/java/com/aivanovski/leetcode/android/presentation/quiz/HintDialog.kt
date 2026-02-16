@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
@@ -38,7 +37,7 @@ import com.aivanovski.leetcode.android.presentation.quiz.model.HintDialogState
 @Composable
 fun HintDialog(
     state: HintDialogState,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -73,7 +72,6 @@ fun HintDialog(
                 }
             }
         }
-
     }
 }
 
@@ -89,7 +87,6 @@ fun CollapsibleItem(
             .fillMaxWidth()
 
     ) {
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier

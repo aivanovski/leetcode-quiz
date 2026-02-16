@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.room)
+    alias(libs.plugins.ktlint)
 }
 
 val debugCredentials = readDebugCredentials()
@@ -30,13 +31,20 @@ android {
         }
     }
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("../keys/debug.keystore")
+        }
+    }
+
     buildTypes {
         debug {
             isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug")
 
             buildConfigField(
                 "String[]",
-                "DEBUG_USERS",
+                "DEBUG_EMAILS",
                 debugCredentials.map { (user, _) -> user }
                     .joinToString(prefix = "{", postfix = "}") { "\"$it\"" }
             )
@@ -51,6 +59,16 @@ android {
 
         release {
             isMinifyEnabled = false
+            buildConfigField(
+                "String[]",
+                "DEBUG_EMAILS",
+                "{}"
+            )
+            buildConfigField(
+                "String[]",
+                "DEBUG_PASSWORDS",
+                "{}"
+            )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -75,8 +93,6 @@ android {
         buildConfig = true
     }
 }
-
-
 
 dependencies {
     implementation(libs.androidx.compose.foundation)
@@ -132,16 +148,11 @@ dependencies {
     implementation(libs.ktor.clientAuth)
     implementation(libs.ktor.serializationJson)
 
-    // Api
-    implementation(project(":backend-api"))
-
     // Preferences
     implementation(libs.ksprefs)
 
-    // Orbit MVI
-    implementation("org.orbit-mvi:orbit-core:10.0.0")
-    implementation("org.orbit-mvi:orbit-viewmodel:10.0.0")
-    implementation("org.orbit-mvi:orbit-compose:10.0.0")
+    // Api
+    implementation(project(":backend-api"))
 }
 
 fun readDebugCredentials(): List<Pair<String, String>> {

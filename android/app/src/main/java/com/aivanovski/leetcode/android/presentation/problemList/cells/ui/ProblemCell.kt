@@ -26,6 +26,9 @@ import com.aivanovski.leetcode.android.presentation.core.compose.preview.Preview
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.rememberOnClickedCallback
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.CardCornerSize
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.CardElevation
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.ElementMargin
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
 import com.aivanovski.leetcode.android.presentation.problemList.cells.model.ProblemCellEvent
@@ -44,16 +47,18 @@ fun ProblemCell(viewModel: ProblemCellViewModel) {
         colors = CardDefaults.cardColors(
             containerColor = AppTheme.theme.colors.cardPrimaryBackground
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = CardElevation),
+        shape = RoundedCornerShape(CardCornerSize),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .clickable(
+                    onClick = onClick
+                )
+                .padding(ElementMargin)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

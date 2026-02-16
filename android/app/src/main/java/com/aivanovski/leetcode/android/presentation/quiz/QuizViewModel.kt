@@ -279,8 +279,7 @@ class QuizViewModel(
         )
     }
 
-    private fun QuizState.asCard(): QuizState.Card =
-        this as QuizState.Card
+    private fun QuizState.asCard(): QuizState.Card = this as QuizState.Card
 
     private data class Answers(
         val positive: Int,

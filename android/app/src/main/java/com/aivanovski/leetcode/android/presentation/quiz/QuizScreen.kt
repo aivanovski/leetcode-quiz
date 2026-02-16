@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -129,7 +126,7 @@ fun QuizScreenContent(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = AppTheme.colors.background,
+                    containerColor = AppTheme.colors.background
                 )
             )
         }
@@ -225,7 +222,6 @@ private fun CardContent(
     onAnswerClick: (answer: Answer) -> Unit,
     onHintClick: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -290,14 +286,12 @@ private fun ButtonsContent(
             contentAlignment = Alignment.Center,
             modifier = Modifier.weight(weight = 1f)
         ) {
-
             TextButton(
                 onClick = onHintClick,
                 modifier = Modifier.width(80.dp)
             ) {
                 Text(stringResource(R.string.hint))
             }
-
         }
 
         Button(
