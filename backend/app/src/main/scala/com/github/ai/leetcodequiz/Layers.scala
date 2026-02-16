@@ -36,7 +36,7 @@ import com.github.ai.leetcodequiz.domain.usecases.{
   ValidateEmailUseCase
 }
 import com.github.ai.leetcodequiz.domain.{PasswordService, ScheduledJobService, StartupService}
-import com.github.ai.leetcodequiz.entity.JwtData
+import com.github.ai.leetcodequiz.entity.ApplicationConfig
 import com.github.ai.leetcodequiz.presentation.controllers.{
   AnswerController,
   AuthController,
@@ -46,14 +46,20 @@ import com.github.ai.leetcodequiz.presentation.controllers.{
 }
 import zio.{ZIO, ZLayer}
 import zio.http.Client
+import zio.direct.*
 
 object Layers {
 
   // Database
   val database = ZLayer.scoped {
-    DatabaseConnectionFactory()
-      .create()
-      .map(db => AppDatabase(db))
+    defer {
+      val appConfig = ZIO.service[ApplicationConfig].run
+
+      DatabaseConnectionFactory(appConfig.database)
+        .create()
+        .map(db => AppDatabase(db))
+        .run
+    }
   }
 
   // Dao's
@@ -77,7 +83,7 @@ object Layers {
 
   // Services
   val passwordService = ZLayer.succeed(PasswordService())
-  val jwtTokeService = ZLayer.fromFunction(AuthService(_, _, _))
+  val authService = ZLayer.fromFunction(AuthService(_, _))
   val startupService = ZLayer.succeed(StartupService())
   val scheduledJobService = ZLayer.fromFunction(ScheduledJobService(_))
 
@@ -90,7 +96,7 @@ object Layers {
   val cloneGithubRepositoryUseCase = ZLayer.fromFunction(CloneGithubRepositoryUseCase(_))
   val createNewQuestionnaireUseCase = ZLayer.fromFunction(CreateNewQuestionnaireUseCase(_, _, _))
   val submitQuestionAnswerUseCase = ZLayer.fromFunction(SubmitQuestionAnswerUseCase(_, _, _, _))
-  val setupTestDataUseCase = ZLayer.fromFunction(SetupTestDataUseCase(_, _))
+  val setupTestDataUseCase = ZLayer.fromFunction(SetupTestDataUseCase(_, _, _))
   val validateEmailUseCase = ZLayer.succeed(ValidateEmailUseCase())
   val getRemainedQuestionsUseCase = ZLayer.fromFunction(GetRemainedQuestionsUseCase(_, _))
   val selectNextQuestionsUseCase = ZLayer.fromFunction(SelectNextQuestionsUseCase(_, _, _))

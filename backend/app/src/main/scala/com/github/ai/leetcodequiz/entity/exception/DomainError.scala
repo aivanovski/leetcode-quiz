@@ -24,6 +24,19 @@ class ParsingError(
   cause: Option[Throwable]
 ) extends DomainError(message, cause)
 
+class EnvironmentError(
+  message: Option[String],
+  cause: Option[Throwable]
+) extends DomainError(message = message, cause = cause)
+
+object EnvironmentError {
+  def apply(message: String): EnvironmentError =
+    new EnvironmentError(Some(message), None)
+
+  def apply(cause: Throwable): EnvironmentError =
+    new EnvironmentError(None, Some(cause))
+}
+
 object ParsingError {
   def apply(message: String): ParsingError =
     new ParsingError(Some(message), None)

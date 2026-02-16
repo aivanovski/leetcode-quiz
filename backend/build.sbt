@@ -1,6 +1,6 @@
 val scala3Version = "3.7.4"
 val zioVersion = "2.1.19"
-val zioJsonVersion = "0.6.2"
+val zioJsonVersion = "0.7.2"
 val circeVersion = "0.14.10"
 val zioDirect = "1.0.0-RC7"
 val zioHttp = "3.0.1"
@@ -70,7 +70,12 @@ lazy val app = project
       // Logging
       "dev.zio" %% "zio-logging" % "2.3.2",
       "dev.zio" %% "zio-logging-slf4j" % "2.3.1",
-      "ch.qos.logback" % "logback-classic" % "1.5.11",
+      "ch.qos.logback" % "logback-classic" % "1.5.13",
+
+      // Environment configuration
+      "dev.zio" %% "zio-config" % "4.0.6",
+      "dev.zio" %% "zio-config-typesafe" % "4.0.6",
+      "io.github.cdimascio" % "dotenv-java" % "3.2.0",
 
       // JWT
       "com.auth0" % "java-jwt" % "4.5.0",
@@ -92,9 +97,7 @@ lazy val app = project
 
       // Json
       "dev.zio" %% "zio-json" % zioJsonVersion,
-
-      // Jackson for streaming JSON parsing
-      "com.fasterxml.jackson.core" % "jackson-core" % "2.18.2"
+      "com.fasterxml.jackson.core" % "jackson-core" % "2.21.0"
     )
   )
 
@@ -128,6 +131,10 @@ lazy val codegen = project
       "dev.zio" %% "zio-direct" % zioDirect
     ),
     generateKotlinClasses := {
-      (Compile / runMain).toTask(" com.github.ai.leetcodequiz.codegen.TranspilerMain api/src/main/scala ./../android/backend-api/src/main/kotlin").value
+      (Compile / runMain)
+        .toTask(
+          " com.github.ai.leetcodequiz.codegen.TranspilerMain api/src/main/scala ./../android/backend-api/src/main/kotlin"
+        )
+        .value
     }
   )

@@ -75,4 +75,7 @@ backend/dev-data
 debug.properties
 
 # Env files
-.env
+*.env
+
+# Kotlin
+.kotlin/
