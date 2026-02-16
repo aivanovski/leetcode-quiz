@@ -26,6 +26,7 @@ lazy val app = project
   .dependsOn(api)
   .settings(
     name := "leetcode-quiz-app",
+    Test / testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
@@ -60,6 +61,7 @@ lazy val app = project
       // Testing
       "org.scalameta" %% "munit" % "1.0.0" % Test,
       "dev.zio" %% "zio-test" % zioVersion % Test,
+      "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
 
       // ZIO
       "dev.zio" %% "zio" % zioVersion,
