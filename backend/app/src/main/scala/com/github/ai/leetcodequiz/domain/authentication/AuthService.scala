@@ -6,7 +6,7 @@ import com.github.ai.leetcodequiz.data.db.model.UserUid
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.entity.AppEnvironment.{DEBUG, PROD}
 import com.github.ai.leetcodequiz.entity.exception.{DomainError, InvalidAuthTokenError}
-import com.github.ai.leetcodequiz.entity.{CliArguments, JwtData}
+import com.github.ai.leetcodequiz.entity.ApplicationConfig
 import zio.*
 import zio.direct.*
 
@@ -14,24 +14,23 @@ import java.time.Instant
 import java.util.{Date, UUID}
 
 class AuthService(
-  private val jwtData: JwtData,
-  private val appArguments: CliArguments,
+  private val appConfig: ApplicationConfig,
   private val userRepository: UserRepository
 ) {
 
   def createToken(userUid: UserUid): String = {
     val now = Instant.now()
-    val algorithm = Algorithm.HMAC256(jwtData.secret)
+    val algorithm = Algorithm.HMAC256(appConfig.jwt.secret)
 
-    val timeToLiveInMillis = appArguments.environment match {
+    val timeToLiveInMillis = appConfig.environment match {
       case DEBUG => 30.days.toMillis
       case PROD => 2.hours.toMillis
     }
 
     JWT
       .create()
-      .withIssuer(jwtData.issuer)
-      .withAudience(jwtData.audience)
+      .withIssuer(appConfig.jwt.issuer)
+      .withAudience(appConfig.jwt.audience)
       .withSubject(userUid.toString)
       .withIssuedAt(Date.from(now))
       .withExpiresAt(Date.from(now.plusMillis(timeToLiveInMillis)))
@@ -39,11 +38,11 @@ class AuthService(
   }
 
   def validateToken(token: String): IO[DomainError, UserUid] = defer {
-    val algorithm = Algorithm.HMAC256(jwtData.secret)
+    val algorithm = Algorithm.HMAC256(appConfig.jwt.secret)
     val verifier = JWT
       .require(algorithm)
-      .withIssuer(jwtData.issuer)
-      .withAudience(jwtData.audience)
+      .withIssuer(appConfig.jwt.issuer)
+      .withAudience(appConfig.jwt.audience)
       .build()
 
     val decodedToken = ZIO
