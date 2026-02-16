@@ -70,7 +70,9 @@ object ApiClientMain extends ZIOAppDefault {
     baseUrl: String
   )
 
-  private def parseCliConfig(arguments: List[String]): IO[InvalidCliArgumentException, CliConfig] = {
+  private def parseCliConfig(
+    arguments: List[String]
+  ): IO[InvalidCliArgumentException, CliConfig] = {
     val knownServerFlags = Set("--debug", "--prod")
     val serverFlags = arguments.filter(knownServerFlags.contains)
     val uniqueServerFlags = serverFlags.distinct
@@ -82,7 +84,8 @@ object ApiClientMain extends ZIOAppDefault {
         case Some("--prod") => ApiClient.ProdBaseUrl
         case Some("--debug") => ApiClient.DebugBaseUrl
         case None => ApiClient.DebugBaseUrl
-        case Some(other) => return ZIO.fail(InvalidCliArgumentException(s"Unknown server option: $other"))
+        case Some(other) =>
+          return ZIO.fail(InvalidCliArgumentException(s"Unknown server option: $other"))
       }
 
       val command = arguments.filterNot(knownServerFlags.contains).mkString(" ")
@@ -99,7 +102,8 @@ object ApiClientMain extends ZIOAppDefault {
     }
 
     val command = arguments match {
-      case s"signup $name $email $password" => api.signup(name, email, password).flatMap(printer.print)
+      case s"signup $name $email $password" =>
+        api.signup(name, email, password).flatMap(printer.print)
       case "login" => api.login().flatMap(printer.print)
       case s"login $email $password" => api.login(email, password).flatMap(printer.print)
       case s"problems" =>
@@ -113,9 +117,15 @@ object ApiClientMain extends ZIOAppDefault {
       case s"questionnaires" =>
         api.getAuthToken().flatMap(t => api.getQuestionnaires(t)).flatMap(printer.print)
       case s"unanswered $questionnaireId" =>
-        api.getAuthToken().flatMap(t => api.getUnanswered(questionnaireId, t)).flatMap(printer.print)
+        api
+          .getAuthToken()
+          .flatMap(t => api.getUnanswered(questionnaireId, t))
+          .flatMap(printer.print)
       case s"answer $times $questionnaireId" =>
-        api.getAuthToken().flatMap(t => answerNTimes(api, questionnaireId, times.toInt, t)).flatMap(printer.print)
+        api
+          .getAuthToken()
+          .flatMap(t => answerNTimes(api, questionnaireId, times.toInt, t))
+          .flatMap(printer.print)
       case s"answer $questionnaireId" =>
         api.getAuthToken().flatMap(t => answer(api, questionnaireId, t)).flatMap(printer.print)
       case "create-debug-users" =>
@@ -131,36 +141,39 @@ object ApiClientMain extends ZIOAppDefault {
     ExitCode.success
   }
 
-  private def createDebugUsers(api: ApiClient, printer: Printer): ZIO[Scope, Throwable, Unit] = defer {
-    val envValues = readDotEnv().run
-    val users = parseCsv(envValues.get("DEBUG_USERS"))
-    val passwords = parseCsv(envValues.get("DEBUG_PASSWORDS"))
+  private def createDebugUsers(api: ApiClient, printer: Printer): ZIO[Scope, Throwable, Unit] =
+    defer {
+      val envValues = readDotEnv().run
+      val users = parseCsv(envValues.get("DEBUG_USERS"))
+      val passwords = parseCsv(envValues.get("DEBUG_PASSWORDS"))
 
-    if (users.isEmpty) {
-      ZIO.fail(InvalidCliArgumentException("DEBUG_USERS is missing or empty")).run
-    }
+      if (users.isEmpty) {
+        ZIO.fail(InvalidCliArgumentException("DEBUG_USERS is missing or empty")).run
+      }
 
-    if (passwords.isEmpty) {
-      ZIO.fail(InvalidCliArgumentException("DEBUG_PASSWORDS is missing or empty")).run
-    }
+      if (passwords.isEmpty) {
+        ZIO.fail(InvalidCliArgumentException("DEBUG_PASSWORDS is missing or empty")).run
+      }
 
-    if (users.size != passwords.size) {
-      ZIO
-        .fail(
-          InvalidCliArgumentException(
-            s"DEBUG_USERS count (${users.size}) doesn't match DEBUG_PASSWORDS count (${passwords.size})"
+      if (users.size != passwords.size) {
+        ZIO
+          .fail(
+            InvalidCliArgumentException(
+              s"DEBUG_USERS count (${users.size}) doesn't match DEBUG_PASSWORDS count (${passwords.size})"
+            )
           )
-        )
+          .run
+      }
+
+      ZIO
+        .foreachDiscard(users.zip(passwords)) { case (email, password) =>
+          val name = deriveName(email)
+
+          Console.printLine(s"Creating debug user: $email").orDie *>
+            api.signup(name = name, email = email, password = password).flatMap(printer.print)
+        }
         .run
     }
-
-    ZIO.foreachDiscard(users.zip(passwords)) { case (email, password) =>
-      val name = deriveName(email)
-
-      Console.printLine(s"Creating debug user: $email").orDie *>
-        api.signup(name = name, email = email, password = password).flatMap(printer.print)
-    }.run
-  }
 
   private def deriveName(email: String): String =
     email.takeWhile(_ != '@').trim match {
@@ -211,7 +224,9 @@ object ApiClientMain extends ZIOAppDefault {
 
     candidates
       .find(path => Files.exists(path) && Files.isRegularFile(path))
-      .getOrElse(throw InvalidCliArgumentException("Unable to find .env in current or parent directory"))
+      .getOrElse(
+        throw InvalidCliArgumentException("Unable to find .env in current or parent directory")
+      )
   }
 
   private def answer(
