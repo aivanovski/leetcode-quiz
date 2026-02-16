@@ -11,7 +11,7 @@ import com.github.ai.leetcodequiz.presentation.routes.{
   QuestionnaireRoutes
 }
 import com.github.ai.leetcodequiz.utils.RequestLogger
-import zio.{Console, Runtime, UIO, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
+import zio.{Console, ExitCode, Runtime, UIO, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 import zio.http.*
 import zio.logging.{LogColor, LogFormat, LoggerNameExtractor}
 import zio.logging.backend.SLF4J
@@ -160,6 +160,7 @@ object Main extends ZIOAppDefault {
       .run
     ()
   }.catchAll { error =>
-    Console.printLineError(s"Application failed: $error")
+    Console.printLineError(s"Application failure: $error") *>
+      ZIO.fail(Throwable(error))
   }
 }
