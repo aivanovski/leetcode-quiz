@@ -1,6 +1,5 @@
 package com.aivanovski.leetcode.android.data.api.converters
 
-import arrow.core.getOrElse
 import com.aivanovski.leetcode.android.entity.Problem
 import com.aivanovski.leetcode.android.entity.Question
 import com.aivanovski.leetcode.android.entity.QuestionAnswer
@@ -12,11 +11,7 @@ import com.github.ai.leetcodequiz.api.ProblemsItemDto
 import com.github.ai.leetcodequiz.api.QuestionItemDto
 import com.github.ai.leetcodequiz.api.QuestionnaireItemDto
 import com.github.ai.leetcodequiz.api.QuestionnairesItemDto
-import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlinx.io.bytestring.decodeToByteString
-import kotlinx.io.bytestring.decodeToString
-import kotlinx.io.bytestring.encodeToByteString
 
 fun ProblemsItemDto.toProblem(): Problem =
     Problem(

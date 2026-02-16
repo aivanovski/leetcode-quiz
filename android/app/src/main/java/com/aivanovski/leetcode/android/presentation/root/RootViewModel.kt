@@ -23,9 +23,11 @@ class RootViewModel(
             router.getNavigationFlow().collect { navStack ->
                 val currentScreen = navStack.stack.lastOrNull()
 
-                isBottomBarVisible.value = (currentScreen != null
-                    && currentScreen != Screen.Quiz
-                    && currentScreen != Screen.Login)
+                isBottomBarVisible.value = (
+                    currentScreen != null &&
+                        currentScreen != Screen.Quiz &&
+                        currentScreen != Screen.Login
+                    )
             }
         }
     }

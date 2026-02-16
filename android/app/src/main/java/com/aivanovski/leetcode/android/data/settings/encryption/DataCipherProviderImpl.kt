@@ -4,7 +4,9 @@ import android.content.Context
 import com.aivanovski.leetcode.android.data.settings.encryption.entity.CipherTransformation
 import com.aivanovski.leetcode.android.data.settings.encryption.keyprovider.KeyStoreSecretKeyProvider
 
-class DataCipherProviderImpl(private val context: Context) : DataCipherProvider {
+class DataCipherProviderImpl(
+    private val context: Context
+) : DataCipherProvider {
 
     private val dataCipher: DataCipher by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         instantiateDataCipher()

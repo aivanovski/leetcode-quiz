@@ -20,5 +20,9 @@ open class ApiException(
     val status: HttpStatusCode? = null
 ) : AppException(message, cause)
 
-class NetworkException(cause: Throwable? = null) : ApiException(cause = cause)
-class DecodingException(cause: Throwable?) : AppException(cause = cause)
+class NetworkException(
+    cause: Throwable? = null
+) : ApiException(cause = cause)
+class DecodingException(
+    cause: Throwable?
+) : AppException(cause = cause)

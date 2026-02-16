@@ -24,7 +24,7 @@ interface Settings {
 
 class SettingsImpl(
     context: Context,
-    private val dataCipherProvider: DataCipherProvider,
+    private val dataCipherProvider: DataCipherProvider
 ) : Settings {
 
     private val cipher by lazy {
@@ -69,7 +69,10 @@ class SettingsImpl(
         return if (value.isNotEmpty()) cipher.decode(value) else null
     }
 
-    private fun KsPrefs.pushEncoded(key: String, value: String?) {
+    private fun KsPrefs.pushEncoded(
+        key: String,
+        value: String?
+    ) {
         val encoded = value?.let { cipher.encode(it) } ?: EMPTY
         prefs.push(key, encoded)
     }
