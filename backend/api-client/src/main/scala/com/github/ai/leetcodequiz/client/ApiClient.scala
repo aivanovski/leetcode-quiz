@@ -14,10 +14,9 @@ import zio.json.*
 type ApiResponse = ZIO[Scope, Throwable, Response]
 
 class ApiClient(
-  private val client: Client
+  private val client: Client,
+  private val baseUrl: String = ApiClient.DebugBaseUrl
 ) {
-
-  private val baseUrl = "https://127.0.0.1:8443"
 
   def signup(name: String, email: String, password: String): ApiResponse =
     client.request(
@@ -170,4 +169,9 @@ class ApiClient(
     val DefaultPassword = "abc123"
     val DefaultEmail = "admin@mail.com"
   }
+}
+
+object ApiClient {
+  val DebugBaseUrl = "https://127.0.0.1:8443"
+  val ProdBaseUrl = "https://leetcode.testswithme.org"
 }
