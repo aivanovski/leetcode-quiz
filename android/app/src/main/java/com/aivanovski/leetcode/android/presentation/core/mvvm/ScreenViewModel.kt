@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 
 @Stable
 interface ScreenViewModel {
-    fun start()
-    fun destroy()
+    fun create() {}
+    fun start() {}
+    fun destroy() {}
 }

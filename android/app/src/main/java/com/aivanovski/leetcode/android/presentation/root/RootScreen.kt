@@ -1,6 +1,6 @@
 package com.aivanovski.leetcode.android.presentation.root
 
-import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -11,16 +11,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.ui.NavDisplay
 import com.aivanovski.leetcode.android.presentation.Screen
@@ -28,6 +23,7 @@ import com.aivanovski.leetcode.android.presentation.core.compose.SingleEventEffe
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
+import com.aivanovski.leetcode.android.presentation.core.mvvm.SubscribeToLifecycleEffect
 import com.aivanovski.leetcode.android.presentation.core.navigation.NavigationEvent
 import com.aivanovski.leetcode.android.presentation.navigationRoutes
 import com.aivanovski.leetcode.android.presentation.root.model.BottomNavItem
@@ -47,7 +43,7 @@ fun RootScreen(viewModel: RootViewModel) {
         onBackClick = viewModel::onBackClick
     )
 
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     SingleEventEffect(
         eventFlow = viewModel.events,
         collector = { event ->
@@ -59,24 +55,7 @@ fun RootScreen(viewModel: RootViewModel) {
         }
     )
 
-    // TODO: refactor
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START -> {
-                    viewModel.start()
-                }
-
-                else -> Unit
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
+    SubscribeToLifecycleEffect(viewModel)
 }
 
 @Composable

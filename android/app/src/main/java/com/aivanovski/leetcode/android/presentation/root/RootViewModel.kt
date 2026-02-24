@@ -3,6 +3,7 @@ package com.aivanovski.leetcode.android.presentation.root
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aivanovski.leetcode.android.presentation.Screen
+import com.aivanovski.leetcode.android.presentation.core.mvvm.ScreenViewModel
 import com.aivanovski.leetcode.android.presentation.core.navigation.Router
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -10,7 +11,7 @@ import kotlinx.coroutines.launch
 class RootViewModel(
     private val interactor: RootInteractor,
     private val router: Router
-) : ViewModel() {
+) : ViewModel(), ScreenViewModel {
 
     val backStack = router.getNavigationFlow()
     val events = router.getEventsFlow()
@@ -32,7 +33,7 @@ class RootViewModel(
         }
     }
 
-    fun start() {
+    override fun create() {
         val startScreen = if (interactor.isLoggedIn()) {
             Screen.QuizStart
         } else {

@@ -29,6 +29,8 @@ class ApiClient(
     private var httpClient by mutableStateFlow(createHttpClient())
 
     fun reCreateHttpClient() {
+        httpClient.close()
+
         urlBuilder = createUrlBuilder()
         httpClient = createHttpClient()
     }

@@ -13,6 +13,7 @@ fun SubscribeToLifecycleEffect(viewModel: ScreenViewModel) {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
+                Lifecycle.Event.ON_CREATE -> viewModel.create()
                 Lifecycle.Event.ON_START -> viewModel.start()
                 Lifecycle.Event.ON_DESTROY -> viewModel.destroy()
                 else -> Unit
