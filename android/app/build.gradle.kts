@@ -14,6 +14,9 @@ plugins {
 
 val debugCredentials = readDebugCredentials()
 
+val debugKeystoreFile = file("../keys/debug.keystore")
+val publicKeystoreFile = file("public.keystore")
+
 android {
     namespace = "com.aivanovski.leetcode.android"
     compileSdk = 36
@@ -33,7 +36,7 @@ android {
 
     signingConfigs {
         getByName("debug") {
-            storeFile = file("../keys/debug.keystore")
+            storeFile = if (debugKeystoreFile.exists()) debugKeystoreFile else publicKeystoreFile
         }
     }
 
