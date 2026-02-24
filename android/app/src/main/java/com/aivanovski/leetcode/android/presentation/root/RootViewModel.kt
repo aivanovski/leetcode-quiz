@@ -11,7 +11,8 @@ import kotlinx.coroutines.launch
 class RootViewModel(
     private val interactor: RootInteractor,
     private val router: Router
-) : ViewModel(), ScreenViewModel {
+) : ViewModel(),
+    ScreenViewModel {
 
     val backStack = router.getNavigationFlow()
     val events = router.getEventsFlow()
