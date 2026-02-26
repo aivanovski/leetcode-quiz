@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.data.db.repository
 
 import com.github.ai.leetcodequiz.data.db.dao.SolutionEntityDao
-import com.github.ai.leetcodequiz.data.db.model.{ProblemId, SolutionEntity, SolutionUid}
+import com.github.ai.leetcodequiz.data.db.model.{ProblemId, SolutionEntity, SolutionUid, SourceType}
 import com.github.ai.leetcodequiz.entity.exception.DatabaseError
 import zio.IO
 
@@ -20,6 +20,9 @@ class SolutionRepository(
 
   def getAll(): IO[DatabaseError, List[SolutionEntity]] =
     dao.getAll()
+
+  def findBySourceType(sourceType: SourceType): IO[DatabaseError, List[SolutionEntity]] =
+    dao.findBySourceType(sourceType)
 
   def add(solution: SolutionEntity): IO[DatabaseError, SolutionEntity] =
     dao.add(solution)

@@ -1,7 +1,7 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
 import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
-import com.github.ai.leetcodequiz.data.db.model.{ProblemId, SolutionEntity, SolutionUid}
+import com.github.ai.leetcodequiz.data.db.model.{ProblemId, SolutionEntity, SolutionUid, SourceType}
 import com.github.ai.leetcodequiz.entity.exception.{DatabaseError, FailedToFindEntityError}
 import slick.jdbc.SQLiteProfile.api.*
 import zio.*
@@ -32,6 +32,9 @@ class SolutionEntityDao(
 
   def getAll(): IO[DatabaseError, List[SolutionEntity]] =
     queryAll()
+
+  def findBySourceType(sourceType: SourceType): IO[DatabaseError, List[SolutionEntity]] =
+    query(_.sourceType === sourceType)
 
   def add(solution: SolutionEntity): IO[DatabaseError, SolutionEntity] =
     insert(solution)

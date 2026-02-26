@@ -2,6 +2,7 @@ package com.github.ai.leetcodequiz.domain.jobs
 
 import com.github.ai.leetcodequiz.data.db.model.{
   ProblemId,
+  SourceType,
   SolutionEntity,
   SolutionUid,
   SyncType,
@@ -21,7 +22,7 @@ import zio.direct.*
 
 import java.util.UUID
 
-class SyncSolutionsJob(
+class SyncPersonalSolutionsJob(
   private val cloneRepositoryUseCase: CloneGithubRepositoryUseCase,
   private val fileSystemProvider: FileSystemProvider,
   private val syncRepository: DataSyncRepository,
@@ -57,7 +58,7 @@ class SyncSolutionsJob(
           .map(id => (file, ProblemId(id)))
       }
 
-    val localSolutions = solutionRepository.getAll().run
+    val localSolutions = solutionRepository.findBySourceType(SourceType.PERSONAL).run
     val remoteSolutions = ZIO.collectAll {
       filesAndProblemIds.map { (file, problemId) =>
         fileSystemProvider
@@ -116,11 +117,10 @@ class SyncSolutionsJob(
       .toMap
 
     val updates = potentialUpdates.filter { id =>
-      val remoteNameToSolutionMap = remoteSolutionMap(id).groupBy(s => s.path)
-      val localNameToSolutionMap = localSolutionMap(id).groupBy(s => s.path)
+      val remotePathToContentMap = remoteSolutionMap(id).map(s => (s.path, s.content)).toMap
+      val localPathToContentMap = localSolutionMap(id).map(s => (s.path, s.content)).toMap
 
-      // TODO: implement solutions update
-      false
+      remotePathToContentMap != localPathToContentMap
     }
 
     ZIO
@@ -147,14 +147,17 @@ class SyncSolutionsJob(
       ZIO.logInfo(s"Updating ${updates.size} solutions:").run
 
       for (id <- updates) {
-        val name = problemIdToNameMap.getOrElse(id, "")
-//        val remote = remoteSolutionMap(id)
-//        val local = localSolutionMap(id)
-//        val updated = local.copy(
-//          content = remote.content
-//        )
-//        ZIO.logInfo(s"  ~ [$id] $name").run
-//        solutionRepository.update(updated).run
+        val problemName = problemIdToNameMap.getOrElse(id, "")
+
+        for (local <- localSolutionMap(id)) {
+          solutionRepository.delete(local.uid).run
+        }
+
+        for (remote <- remoteSolutionMap(id)) {
+          val local = toDatabaseEntity(remote)
+          ZIO.logInfo(s"  ~ [$id] $problemName").run
+          solutionRepository.add(local).run
+        }
       }
     }
 
@@ -182,7 +185,8 @@ class SyncSolutionsJob(
       uid = SolutionUid(UUID.randomUUID()),
       problemId = solution.problemId,
       path = solution.path,
-      content = solution.content
+      content = solution.content,
+      sourceType = SourceType.PERSONAL
     )
 
   private case class SolutionItem(

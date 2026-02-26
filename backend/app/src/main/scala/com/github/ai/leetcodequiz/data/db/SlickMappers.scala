@@ -44,6 +44,12 @@ object SlickMappers {
   given BaseColumnType[SyncType] =
     MappedColumnType.base[SyncType, String](_.toString, SyncType.valueOf)
 
+  given BaseColumnType[ChallengeListType] =
+    MappedColumnType.base[ChallengeListType, String](_.toString, ChallengeListType.valueOf)
+
+  given BaseColumnType[SourceType] =
+    MappedColumnType.base[SourceType, String](_.toString, SourceType.valueOf)
+
   given BaseColumnType[LocalDateTime] =
     MappedColumnType.base[LocalDateTime, String](_.toString, LocalDateTime.parse)
 

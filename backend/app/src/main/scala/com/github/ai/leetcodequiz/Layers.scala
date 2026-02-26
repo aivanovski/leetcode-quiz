@@ -23,7 +23,12 @@ import com.github.ai.leetcodequiz.data.db.repository.{
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
 import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser, StreamingProblemParser}
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
-import com.github.ai.leetcodequiz.domain.jobs.{SyncProblemsJob, SyncQuestionsJob, SyncSolutionsJob}
+import com.github.ai.leetcodequiz.domain.jobs.{
+  SyncExternalSolutionsJob,
+  SyncProblemsJob,
+  SyncQuestionsJob,
+  SyncPersonalSolutionsJob
+}
 import com.github.ai.leetcodequiz.domain.usecases.{
   CloneGithubRepositoryUseCase,
   CreateNewQuestionnaireUseCase,
@@ -90,7 +95,8 @@ object Layers {
   // Scheduled jobs
   val syncProblemsJob = ZLayer.fromFunction(SyncProblemsJob(_, _, _, _, _, _))
   val syncQuestionsJob = ZLayer.fromFunction(SyncQuestionsJob(_, _, _, _, _))
-  val syncSolutionsJob = ZLayer.fromFunction(SyncSolutionsJob(_, _, _, _, _))
+  val syncPersonalSolutionsJob = ZLayer.fromFunction(SyncPersonalSolutionsJob(_, _, _, _, _))
+  val syncExternalSolutionsJob = ZLayer.fromFunction(SyncExternalSolutionsJob(_, _, _, _, _))
 
   // Use cases
   val cloneGithubRepositoryUseCase = ZLayer.fromFunction(CloneGithubRepositoryUseCase(_))

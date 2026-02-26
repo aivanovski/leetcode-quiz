@@ -1,7 +1,12 @@
 package com.github.ai.leetcodequiz.data.db.dao
 
 import com.github.ai.leetcodequiz.data.db.{AppDatabase, SlickMappers}
-import com.github.ai.leetcodequiz.data.db.model.{ProblemId, QuestionEntity, QuestionUid}
+import com.github.ai.leetcodequiz.data.db.model.{
+  ChallengeListType,
+  ProblemId,
+  QuestionEntity,
+  QuestionUid
+}
 import com.github.ai.leetcodequiz.entity.exception.{DatabaseError, FailedToFindEntityError}
 import slick.jdbc.SQLiteProfile.api.*
 import zio.*
@@ -19,6 +24,9 @@ class QuestionEntityDao(
     queryOne(table => table.uid === uid)
       .flatMap(o => ZIO.fromOption(o))
       .mapError(_ => FailedToFindEntityError(classOf[QuestionEntity], criteria = s"uid == $uid"))
+
+  def getByListType(listType: ChallengeListType): IO[DatabaseError, List[QuestionEntity]] =
+    query(_.listType === listType)
 
   def add(question: QuestionEntity): IO[DatabaseError, QuestionEntity] =
     insert(question)
