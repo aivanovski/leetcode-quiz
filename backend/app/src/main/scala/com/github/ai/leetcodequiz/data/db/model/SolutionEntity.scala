@@ -4,5 +4,10 @@ case class SolutionEntity(
   uid: SolutionUid,
   problemId: ProblemId,
   path: String,
-  content: String
+  content: String,
+  sourceType: SourceType
 )
+
+enum SourceType {
+  case PERSONAL, EXTERNAL
+}

@@ -1,6 +1,7 @@
 package com.github.ai.leetcodequiz.domain.jobs
 
 import com.github.ai.leetcodequiz.data.db.model.{
+  ChallengeListType,
   DataSyncEntity,
   ProblemId,
   QuestionEntity,
@@ -66,15 +67,27 @@ class SyncQuestionsJob(
         )
         .run
 
-      val solutionsFile = RelativePath(s"${repoDir.path}/Leetcode challenges - Blind 75.csv")
+      val files = List(
+        (
+          ChallengeListType.BLIND_75,
+          RelativePath(s"${repoDir.path}/Leetcode challenges - Blind 75.csv")
+        ),
+        (
+          ChallengeListType.NEETCODE_150,
+          RelativePath(s"${repoDir.path}/Leetcode challenges - Neetcode 150.csv")
+        )
+      )
 
-      val remoteQuestions = parseContent(solutionsFile).run
-      val localQuestions = questionRepository.getAll().run
+      for ((listType, file) <- files) {
+        val remoteQuestions = parseContent(file).run
+        val localQuestions = questionRepository.getByListType(listType).run
 
-      syncQuestionsWithDatabase(
-        remoteQuestions = remoteQuestions,
-        localQuestions = localQuestions
-      ).run
+        syncQuestionsWithDatabase(
+          remoteQuestions = remoteQuestions,
+          localQuestions = localQuestions,
+          listType = listType
+        ).run
+      }
 
       syncComplete(syncUid).run
 
@@ -88,7 +101,8 @@ class SyncQuestionsJob(
 
   private def syncQuestionsWithDatabase(
     remoteQuestions: List[QuestionItem],
-    localQuestions: List[QuestionEntity]
+    localQuestions: List[QuestionEntity],
+    listType: ChallengeListType
   ): IO[DomainError, Unit] = defer {
     val remoteQuestionsMap = remoteQuestions.map(question => (question.id, question)).toMap
     val localQuestionsMap =
@@ -105,12 +119,16 @@ class SyncQuestionsJob(
       val remote = remoteQuestionsMap(id)
       val local = localQuestionsMap(id)
 
-      local.complexity != remote.complexity || local.question != remote.solution
+      local.complexity != remote.complexity
+      || local.question != remote.algorithm
+      || local.formula != remote.formula
+      || local.repeatability != remote.repeatabilityFactor
+      || local.importance != remote.importance
     }
 
     ZIO
       .logInfo(
-        s"Question sync summary: ${insertions.size} insertions, ${updates.size} updates, ${deletions.size} deletions"
+        s"$listType Question sync summary: ${insertions.size} insertions, ${updates.size} updates, ${deletions.size} deletions"
       )
       .run
 
@@ -119,7 +137,7 @@ class SyncQuestionsJob(
 
       for (id <- insertions) {
         val remote = remoteQuestionsMap(id)
-        val local = toDatbaseEntity(remote)
+        val local = toDatabaseEntity(remote, listType)
         ZIO.logInfo(s"  + [$id] ${remote.name}").run
         questionRepository.add(local).run
       }
@@ -129,13 +147,13 @@ class SyncQuestionsJob(
       ZIO.logInfo(s"Updating ${updates.size} questions:").run
 
       for (id <- updates) {
-        val remote = remoteQuestionsMap(id)
+        val questionName = remoteQuestionsMap(id).name
+        val remote = toDatabaseEntity(remoteQuestionsMap(id), listType)
         val local = localQuestionsMap(id)
-        val updated = local.copy(
-          question = remote.solution,
-          complexity = remote.complexity
+        val updated = remote.copy(
+          uid = local.uid
         )
-        ZIO.logInfo(s"  ~ [$id] ${remote.name}").run
+        ZIO.logInfo(s"  ~ [$id] $questionName").run
         questionRepository.update(updated).run
       }
     }
@@ -193,9 +211,12 @@ class SyncQuestionsJob(
             .builder()
             .setHeader(
               CsvColumns.Name,
-              CsvColumns.Solved,
-              CsvColumns.Solution,
-              CsvColumns.Complexity
+              CsvColumns.RepeatabilityFactor,
+              CsvColumns.Importance,
+              CsvColumns.Algorithm,
+              CsvColumns.Complexity,
+              CsvColumns.AdditionalLink,
+              CsvColumns.Formula
             )
             .setSkipHeaderRecord(true)
             .build()
@@ -215,9 +236,11 @@ class SyncQuestionsJob(
     record: CSVRecord
   ): Option[QuestionItem] = {
     val idAndName = record.get(CsvColumns.Name)
-    val solved = record.get(CsvColumns.Solved)
-    val solution = record.get(CsvColumns.Solution)
+    val repeatabilityFactor = record.get(CsvColumns.RepeatabilityFactor).toIntOption
+    val importance = record.get(CsvColumns.Importance).toIntOption
+    val algorithm = record.get(CsvColumns.Algorithm)
     val complexity = record.get(CsvColumns.Complexity)
+    val formula = record.get(CsvColumns.Formula)
 
     val idOption = idAndName
       .split("\\.")
@@ -232,33 +255,47 @@ class SyncQuestionsJob(
       QuestionItem(
         id = idOption.getOrElse(-1),
         name = nameOption.getOrElse(""),
-        solved = solved,
-        solution = solution,
-        complexity = complexity
+        repeatabilityFactor = repeatabilityFactor.getOrElse(0),
+        importance = importance.getOrElse(0),
+        algorithm = algorithm,
+        complexity = complexity,
+        formula = formula
       )
     )
   }
 
-  private def toDatbaseEntity(question: QuestionItem) =
+  private def toDatabaseEntity(
+    question: QuestionItem,
+    listType: ChallengeListType
+  ) =
     QuestionEntity(
       uid = QuestionUid(UUID.randomUUID()),
       problemId = ProblemId(question.id),
-      question = question.solution,
-      complexity = question.complexity
+      listType = listType,
+      question = question.algorithm,
+      complexity = question.complexity,
+      formula = question.formula,
+      repeatability = question.repeatabilityFactor,
+      importance = question.importance
     )
 
   private case class QuestionItem(
     id: Long,
     name: String,
-    solved: String,
-    solution: String,
-    complexity: String
+    repeatabilityFactor: Int,
+    importance: Int,
+    algorithm: String,
+    complexity: String,
+    formula: String
   )
 
   private object CsvColumns {
     val Name = "Name"
-    val Solved = "Solved"
-    val Solution = "Solution"
+    val RepeatabilityFactor = "Repeatability factor"
+    val Importance = "Importance"
+    val Algorithm = "Algorithm"
     val Complexity = "Complexity"
+    val AdditionalLink = "Additional link"
+    val Formula = "Formula"
   }
 }

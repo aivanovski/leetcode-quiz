@@ -121,7 +121,8 @@ object Main extends ZIOAppDefault {
         // Scheduled jobs
         Layers.syncProblemsJob,
         Layers.syncQuestionsJob,
-        Layers.syncSolutionsJob,
+        Layers.syncPersonalSolutionsJob,
+        Layers.syncExternalSolutionsJob,
 
         // Services
         Layers.startupService,

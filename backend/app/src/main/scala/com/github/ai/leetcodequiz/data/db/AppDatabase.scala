@@ -8,6 +8,7 @@ import zio.direct.*
 
 import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 class AppDatabase(
   val context: Database
@@ -110,8 +111,12 @@ class QuestionEntityTable(tag: Tag, problems: TableQuery[ProblemEntityTable])
 
   val uid = column[QuestionUid]("uid", O.PrimaryKey)
   val problemId = column[ProblemId]("problem_id")
+  val listType = column[ChallengeListType]("list_type")
   val question = column[String]("question")
   val complexity = column[String]("complexity")
+  val formula = column[String]("formula")
+  val repeatability = column[Int]("repeatability")
+  val importance = column[Int]("importance")
 
   def problemFk =
     foreignKey("fk_questions_problem_id", problemId, problems)(
@@ -119,7 +124,9 @@ class QuestionEntityTable(tag: Tag, problems: TableQuery[ProblemEntityTable])
       onDelete = ForeignKeyAction.Cascade
     )
 
-  override def * = (uid, problemId, question, complexity).mapTo[QuestionEntity]
+  override def * =
+    (uid, problemId, listType, question, complexity, formula, repeatability, importance)
+      .mapTo[QuestionEntity]
 }
 
 class QuestionnaireEntityTable(tag: Tag) extends Table[QuestionnaireEntity](tag, "questionnaires") {
@@ -203,6 +210,7 @@ class SolutionEntityTable(tag: Tag, problems: TableQuery[ProblemEntityTable])
   val problemId = column[ProblemId]("problem_id")
   val path = column[String]("path")
   val content = column[String]("content")
+  val sourceType = column[SourceType]("source_type")
 
   def problemFk =
     foreignKey("fk_solutions_problem_id", problemId, problems)(
@@ -210,5 +218,5 @@ class SolutionEntityTable(tag: Tag, problems: TableQuery[ProblemEntityTable])
       onDelete = ForeignKeyAction.Cascade
     )
 
-  override def * = (uid, problemId, path, content).mapTo[SolutionEntity]
+  override def * = (uid, problemId, path, content, sourceType).mapTo[SolutionEntity]
 }

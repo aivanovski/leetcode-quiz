@@ -5,9 +5,10 @@ import com.github.ai.leetcodequiz.data.db.repository.DataSyncRepository
 import com.github.ai.leetcodequiz.domain.jobs.{
   JobScheduler,
   ScheduledJob,
+  SyncExternalSolutionsJob,
   SyncProblemsJob,
   SyncQuestionsJob,
-  SyncSolutionsJob
+  SyncPersonalSolutionsJob
 }
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
@@ -22,9 +23,11 @@ class ScheduledJobService(
   def startScheduledJobs() = defer {
     val syncProblemsJob = ZIO.service[SyncProblemsJob].run
     val syncQuestionsJob = ZIO.service[SyncQuestionsJob].run
-    val syncSolutionsJob = ZIO.service[SyncSolutionsJob].run
+    val syncPersonalSolutionsJob = ZIO.service[SyncPersonalSolutionsJob].run
+    val syncExternalSolutionsJob = ZIO.service[SyncExternalSolutionsJob].run
 
-    val allJobs = List(syncProblemsJob, syncQuestionsJob, syncSolutionsJob)
+    val allJobs =
+      List(syncProblemsJob, syncQuestionsJob, syncPersonalSolutionsJob, syncExternalSolutionsJob)
 
     runJob(allJobs)
       .repeat(Schedule.fixed(1.hour))
