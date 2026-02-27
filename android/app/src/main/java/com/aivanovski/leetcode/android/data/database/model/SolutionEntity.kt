@@ -13,13 +13,13 @@ import androidx.room.PrimaryKey
             entity = ProblemEntity::class,
             parentColumns = ["id"],
             childColumns = ["problem_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ],
     indices = [Index("problem_id")]
 )
 data class SolutionEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("id") val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long? = null,
     @ColumnInfo("problem_id") val problemId: Int,
     val content: String
 )

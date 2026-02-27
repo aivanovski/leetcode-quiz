@@ -7,7 +7,7 @@ import arrow.core.Either
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.di.GlobalInjector
 import com.aivanovski.leetcode.android.entity.ErrorMessage
-import com.aivanovski.leetcode.android.entity.Problem
+import com.aivanovski.leetcode.android.entity.ProblemWithContent
 import com.aivanovski.leetcode.android.entity.Question
 import com.aivanovski.leetcode.android.entity.Questionnaire
 import com.aivanovski.leetcode.android.entity.exception.ApiException
@@ -24,6 +24,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,13 +47,14 @@ class QuizViewModel(
     private val queuedQuestionIds = HashSet<String>()
     private var currentQuestion: Question? = null
     private var answeredQuestionsIds = HashSet<String>()
-    private var problemIdToProblemMap = HashMap<Int, Problem>()
+    private var problemIdToProblemMap = HashMap<Int, ProblemWithContent>()
     private var answers = Answers(0, 0)
 
     init {
         viewModelScope.launch {
             loadProblemChannel.receiveAsFlow()
                 .flatMapLatest { problemId -> interactor.loadProblem(problemId) }
+                .flowOn(Dispatchers.IO)
                 .collect { data -> onProblemLoaded(data) }
         }
 
@@ -200,13 +202,13 @@ class QuizViewModel(
         }
     }
 
-    private fun onProblemLoaded(data: Either<AppException, Problem>) {
+    private fun onProblemLoaded(data: Either<AppException, ProblemWithContent>) {
         data.fold(
             ifLeft = { error ->
                 state.value = QuizState.Error(createErrorMessage(error))
             },
             ifRight = { data ->
-                problemIdToProblemMap[data.id] = data
+                problemIdToProblemMap[data.problem.id] = data
                 rebuildScreenState()
             }
         )

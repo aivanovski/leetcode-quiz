@@ -8,6 +8,9 @@ data class ProblemWithInnerEntities(
     val problem: ProblemEntity,
 
     @Relation(parentColumn = "id", entityColumn = "problem_id")
+    val content: ContentEntity?,
+
+    @Relation(parentColumn = "id", entityColumn = "problem_id")
     val solutions: List<SolutionEntity>,
 
     @Relation(parentColumn = "id", entityColumn = "problem_id")

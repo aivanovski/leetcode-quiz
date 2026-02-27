@@ -2,6 +2,7 @@ package com.aivanovski.leetcode.android.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.aivanovski.leetcode.android.data.settings.Settings
 import com.aivanovski.leetcode.android.di.GlobalInjector
 import com.aivanovski.leetcode.android.presentation.Screen
@@ -15,6 +16,7 @@ import com.aivanovski.leetcode.android.presentation.settings.SettingsCellFactory
 import com.aivanovski.leetcode.android.presentation.settings.model.SettingsState
 import io.ktor.client.plugins.logging.LogLevel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val interactor: SettingsInteractor,
@@ -65,10 +67,7 @@ class SettingsViewModel(
 
                 is TwoTextCellEvent.OnClick -> {
                     when (event.cellId) {
-                        SettingsCellId.LOGOUT.id -> {
-                            interactor.logout()
-                            router.setRoot(Screen.Login)
-                        }
+                        SettingsCellId.LOGOUT.id -> onLogOutClicked()
                     }
                 }
             }
@@ -77,6 +76,13 @@ class SettingsViewModel(
 
     private fun unsubscribeFromCellEvents() {
         eventProvider.unsubscribe(this)
+    }
+
+    private fun onLogOutClicked() {
+        viewModelScope.launch {
+            interactor.logout()
+            router.setRoot(Screen.Login)
+        }
     }
 
     class Factory : ViewModelProvider.Factory {

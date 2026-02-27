@@ -4,13 +4,12 @@ import arrow.core.Either
 import arrow.core.raise.either
 import com.aivanovski.leetcode.android.data.api.ApiClient
 import com.aivanovski.leetcode.android.data.repository.ProblemRepository
-import com.aivanovski.leetcode.android.entity.Problem
+import com.aivanovski.leetcode.android.entity.ProblemWithContent
 import com.aivanovski.leetcode.android.entity.Questionnaire
 import com.aivanovski.leetcode.android.entity.exception.AppException
 import com.aivanovski.leetcode.android.presentation.quiz.model.Answer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class QuizInteractor(
@@ -33,9 +32,8 @@ class QuizInteractor(
             }
         }
 
-    fun loadProblem(problemId: Int): Flow<Either<AppException, Problem>> =
+    fun loadProblem(problemId: Int): Flow<Either<AppException, ProblemWithContent>> =
         problemRepository.getById(problemId)
-            .flowOn(Dispatchers.IO)
 
     suspend fun answerAndLoadMore(
         questionnaireId: String,

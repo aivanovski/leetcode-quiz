@@ -6,13 +6,7 @@ import androidx.compose.runtime.Immutable
 data class Problem(
     val id: Int,
     val title: String,
-    val content: String,
-    val hints: List<String>,
     val categoryTitle: String,
     val difficulty: String,
-    val solutions: List<String>,
-    val questions: List<Question>,
-    val url: String,
-    val likes: Long,
-    val dislikes: Long
+    val url: String
 )

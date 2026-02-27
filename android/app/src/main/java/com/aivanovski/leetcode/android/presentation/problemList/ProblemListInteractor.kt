@@ -1,21 +1,15 @@
 package com.aivanovski.leetcode.android.presentation.problemList
 
 import arrow.core.Either
-import arrow.core.raise.either
-import com.aivanovski.leetcode.android.data.api.ApiClient
+import com.aivanovski.leetcode.android.data.repository.ProblemRepository
 import com.aivanovski.leetcode.android.entity.Problem
 import com.aivanovski.leetcode.android.entity.exception.AppException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
 
 class ProblemListInteractor(
-    private val api: ApiClient
+    private val repository: ProblemRepository
 ) {
 
-    suspend fun getProblems(): Either<AppException, List<Problem>> =
-        either {
-            withContext(Dispatchers.IO) {
-                api.getProblems().bind()
-            }
-        }
+    fun getProblems(isForceReload: Boolean): Flow<Either<AppException, List<Problem>>> =
+        repository.getAll(isForceReload = isForceReload)
 }
