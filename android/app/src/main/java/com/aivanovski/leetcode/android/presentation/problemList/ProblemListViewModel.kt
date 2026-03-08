@@ -126,7 +126,10 @@ class ProblemListViewModel(
 
     fun onErrorAction(actionId: Int) {
         when (actionId) {
-            ACTION_RETRY -> loadData(isForceReload = false)
+            ACTION_RETRY -> {
+                isRefreshing.value = true
+                sendIntent(ProblemListIntent.Refresh)
+            }
         }
     }
 

@@ -94,11 +94,11 @@ interface ProblemEntityDao {
     suspend fun updateWithInnerEntities(problem: ProblemWithInnerEntities) {
         val problemId = problem.problem.id
 
-        removeById(problemId)
         removeContentByProblemId(problemId)
         removeSolutionsByProblemId(problemId)
         removeQuestionsByProblemId(problemId)
         removeHintsByProblemId(problemId)
+        removeById(problemId)
 
         insertWithInnerEntities(problem)
     }
