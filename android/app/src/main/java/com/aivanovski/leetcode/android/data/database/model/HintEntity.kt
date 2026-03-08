@@ -13,7 +13,7 @@ import androidx.room.PrimaryKey
             entity = ProblemEntity::class,
             parentColumns = ["id"],
             childColumns = ["problem_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ],
     indices = [Index("problem_id")]

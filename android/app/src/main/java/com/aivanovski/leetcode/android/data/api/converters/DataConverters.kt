@@ -1,6 +1,7 @@
 package com.aivanovski.leetcode.android.data.api.converters
 
 import com.aivanovski.leetcode.android.entity.Problem
+import com.aivanovski.leetcode.android.entity.ProblemWithContent
 import com.aivanovski.leetcode.android.entity.Question
 import com.aivanovski.leetcode.android.entity.QuestionAnswer
 import com.aivanovski.leetcode.android.entity.Questionnaire
@@ -11,39 +12,31 @@ import com.github.ai.leetcodequiz.api.ProblemsItemDto
 import com.github.ai.leetcodequiz.api.QuestionItemDto
 import com.github.ai.leetcodequiz.api.QuestionnaireItemDto
 import com.github.ai.leetcodequiz.api.QuestionnairesItemDto
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 fun ProblemsItemDto.toProblem(): Problem =
     Problem(
         id = id,
         title = title,
-        content = "",
-        hints = emptyList(),
         categoryTitle = categoryTitle,
         difficulty = difficulty,
-        solutions = listOf(),
-        questions = listOf(),
-        url = url,
-        likes = likes.toLong(),
-        dislikes = dislikes.toLong()
+        url = url
     )
 
-@OptIn(ExperimentalEncodingApi::class)
-fun ProblemItemDto.toProblem(): Problem =
-    Problem(
-        id = id,
-        title = title,
+fun ProblemItemDto.toProblemWithContent(): ProblemWithContent =
+    ProblemWithContent(
+        problem = Problem(
+            id = id,
+            title = title,
+            categoryTitle = categoryTitle,
+            difficulty = difficulty,
+            url = url
+        ),
         content = content,
         hints = hints,
-        categoryTitle = categoryTitle,
-        difficulty = difficulty,
         solutions = solutions.mapNotNull { solution ->
             Base64Utils.decode(solution.contentBase64).getOrNull()
         },
-        questions = questions.map { it.toQuestion() },
-        url = url,
-        likes = likes.toLong(),
-        dislikes = dislikes.toLong()
+        questions = questions.map { it.toQuestion() }
     )
 
 fun QuestionnaireItemDto.toQuestionnaire(): Questionnaire =

@@ -2,7 +2,7 @@ package com.aivanovski.leetcode.android.presentation.problemList
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import arrow.core.Either
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.di.GlobalInjector
 import com.aivanovski.leetcode.android.entity.ErrorMessage
@@ -12,40 +12,57 @@ import com.aivanovski.leetcode.android.entity.exception.NetworkException
 import com.aivanovski.leetcode.android.presentation.Screen
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellEvent
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellEventProviderImpl
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
+import com.aivanovski.leetcode.android.presentation.core.mvvm.MviViewModel
 import com.aivanovski.leetcode.android.presentation.core.navigation.Router
 import com.aivanovski.leetcode.android.presentation.core.resources.ResourceProvider
 import com.aivanovski.leetcode.android.presentation.problemDetails.model.ProblemDetailsArgs
 import com.aivanovski.leetcode.android.presentation.problemList.cells.model.ProblemCellEvent
-import com.aivanovski.leetcode.android.presentation.problemList.cells.viewModel.ProblemCellViewModel
+import com.aivanovski.leetcode.android.presentation.problemList.model.ProblemListIntent
 import com.aivanovski.leetcode.android.presentation.problemList.model.ProblemListState
 import com.aivanovski.leetcode.android.utils.formatReadableMessage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class ProblemListViewModel(
     private val router: Router,
     private val interactor: ProblemListInteractor,
     private val cellFactory: ProblemListCellFactory,
     private val resources: ResourceProvider
-) : ViewModel() {
+) : MviViewModel<ProblemListState, ProblemListIntent>(
+    initialState = ProblemListState.Loading,
+    initialIntent = ProblemListIntent.Initialize
+) {
 
-    val state = MutableStateFlow<ProblemListState>(ProblemListState.Loading)
     val searchQuery = MutableStateFlow("")
     val isSearchActive = MutableStateFlow(false)
+    val isRefreshing = MutableStateFlow(false)
 
+    @Volatile
     private var allProblems: List<Problem> = emptyList()
+
+    @Volatile
     private var problemIdToProblemMap: Map<Int, Problem> = emptyMap()
     private val eventProvider = CellEventProviderImpl()
 
     init {
         subscribeToEvents()
-        loadQuestions()
     }
 
     override fun onCleared() {
         super.onCleared()
-        eventProvider.unsubscribe(this)
         eventProvider.clear()
+    }
+
+    override fun handleIntent(intent: ProblemListIntent): Flow<ProblemListState> {
+        return when (intent) {
+            ProblemListIntent.Initialize -> loadData(isForceReload = false)
+            ProblemListIntent.Refresh -> loadData(isForceReload = true)
+        }
     }
 
     private fun subscribeToEvents() {
@@ -62,28 +79,33 @@ class ProblemListViewModel(
         }
     }
 
-    fun loadQuestions() {
-        viewModelScope.launch {
-            state.value = ProblemListState.Loading
+    private fun loadData(isForceReload: Boolean): Flow<ProblemListState> {
+        return interactor.getProblems(isForceReload)
+            .map { result ->
+                when (result) {
+                    is Either.Left -> {
+                        isRefreshing.value = false
+                        ProblemListState.Error(
+                            message = createErrorMessage(result.value)
+                        )
+                    }
 
-            interactor.getProblems().fold(
-                ifLeft = { error ->
-                    state.value = ProblemListState.Error(createErrorMessage(error))
-                },
-                ifRight = { problems ->
-                    allProblems = problems
-                    problemIdToProblemMap = allProblems.associateBy { problem -> problem.id }
-                    state.value = ProblemListState.Data(
-                        cellViewModels = createCellViewModels(
-                            filterProblems(
-                                problems,
-                                searchQuery.value
+                    is Either.Right -> {
+                        isRefreshing.value = false
+                        allProblems = result.value
+                        problemIdToProblemMap =
+                            allProblems.associateBy { problem -> problem.id }
+
+                        ProblemListState.Data(
+                            cellViewModels = createCellViewModels(
+                                filterProblems(result.value, searchQuery.value)
                             )
                         )
-                    )
+                    }
                 }
-            )
-        }
+            }
+            .onStart { emit(ProblemListState.Loading) }
+            .flowOn(Dispatchers.IO)
     }
 
     fun onSearchQueryChanged(query: String) {
@@ -104,7 +126,10 @@ class ProblemListViewModel(
 
     fun onErrorAction(actionId: Int) {
         when (actionId) {
-            ACTION_RETRY -> loadQuestions()
+            ACTION_RETRY -> {
+                isRefreshing.value = true
+                sendIntent(ProblemListIntent.Refresh)
+            }
         }
     }
 
@@ -122,7 +147,7 @@ class ProblemListViewModel(
         )
     }
 
-    private fun createCellViewModels(problems: List<Problem>): List<ProblemCellViewModel> {
+    private fun createCellViewModels(problems: List<Problem>): List<CellViewModel> {
         return cellFactory.createProblemCells(problems, eventProvider)
     }
 

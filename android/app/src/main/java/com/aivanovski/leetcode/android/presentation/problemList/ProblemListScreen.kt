@@ -1,11 +1,8 @@
 package com.aivanovski.leetcode.android.presentation.problemList
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,9 +21,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -39,17 +36,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
 import com.aivanovski.leetcode.android.presentation.core.compose.ErrorContent
 import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.SpaceCell
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.newSpaceCell
+import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SpaceCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.LightTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
+import com.aivanovski.leetcode.android.presentation.core.mvvm.SubscribeToLifecycleEffect
 import com.aivanovski.leetcode.android.presentation.problemList.cells.ui.ProblemCell
-import com.aivanovski.leetcode.android.presentation.problemList.cells.ui.newProblemCellViewModel
+import com.aivanovski.leetcode.android.presentation.problemList.cells.ui.newProblemCell
+import com.aivanovski.leetcode.android.presentation.problemList.cells.viewModel.ProblemCellViewModel
+import com.aivanovski.leetcode.android.presentation.problemList.model.ProblemListIntent
 import com.aivanovski.leetcode.android.presentation.problemList.model.ProblemListState
 
 @Composable
@@ -57,31 +62,38 @@ fun ProblemListScreen() {
     val factory = remember { ProblemListViewModel.Factory() }
     val viewModel: ProblemListViewModel = viewModel(factory = factory)
 
-    val state by viewModel.state.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val isSearchActive by viewModel.isSearchActive.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
 
     ProblemListScreen(
         state = state,
+        isRefreshing = isRefreshing,
         searchQuery = searchQuery,
         isSearchActive = isSearchActive,
         onSearchQueryChange = viewModel::onSearchQueryChanged,
         onCloseSearch = viewModel::onCloseSearch,
         onSearchClicked = viewModel::onSearchClicked,
-        onErrorAction = viewModel::onErrorAction
+        onErrorAction = viewModel::onErrorAction,
+        onIntent = viewModel::sendIntent
     )
+
+    SubscribeToLifecycleEffect(viewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProblemListScreen(
     state: ProblemListState,
+    isRefreshing: Boolean,
     searchQuery: String,
     isSearchActive: Boolean,
     onSearchQueryChange: (query: String) -> Unit,
     onCloseSearch: () -> Unit,
     onSearchClicked: () -> Unit,
-    onErrorAction: (actionId: Int) -> Unit
+    onErrorAction: (actionId: Int) -> Unit,
+    onIntent: (intent: ProblemListIntent) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -116,7 +128,11 @@ private fun ProblemListScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                onIntent.invoke(ProblemListIntent.Refresh)
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
@@ -139,7 +155,8 @@ private fun ProblemListScreen(
 
                 is ProblemListState.Data -> {
                     DataContent(
-                        state = state
+                        state = state,
+                        onIntent = onIntent
                     )
                 }
             }
@@ -204,26 +221,27 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun DataContent(state: ProblemListState.Data) {
+private fun DataContent(
+    state: ProblemListState.Data,
+    onIntent: (intent: ProblemListIntent) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Spacer(modifier = Modifier.height(4.dp))
+        items(items = state.cellViewModels) { viewModel ->
+            RenderCell(viewModel)
         }
+    }
+}
 
-        items(
-            items = state.cellViewModels
-        ) { viewModel ->
-            ProblemCell(viewModel)
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(4.dp))
-        }
+@Composable
+private fun RenderCell(viewModel: CellViewModel) {
+    when (viewModel) {
+        is ProblemCellViewModel -> ProblemCell(viewModel)
+        is SpaceCellViewModel -> SpaceCell(viewModel)
     }
 }
 
@@ -233,12 +251,14 @@ fun ProblemListScreen_Data() {
     ThemedScreenPreview(LightTheme) {
         ProblemListScreen(
             state = newDataState(),
+            isRefreshing = false,
             searchQuery = "",
             isSearchActive = false,
             onSearchClicked = {},
             onCloseSearch = {},
             onSearchQueryChange = {},
-            onErrorAction = {}
+            onErrorAction = {},
+            onIntent = {}
         )
     }
 }
@@ -247,7 +267,8 @@ fun ProblemListScreen_Data() {
 private fun newDataState() =
     ProblemListState.Data(
         cellViewModels = listOf(
-            newProblemCellViewModel(),
-            newProblemCellViewModel()
+            newProblemCell(),
+            newSpaceCell(),
+            newProblemCell()
         )
     )

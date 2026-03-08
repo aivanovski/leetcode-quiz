@@ -7,7 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "questions",
+    tableName = "contents",
     foreignKeys = [
         ForeignKey(
             entity = ProblemEntity::class,
@@ -18,9 +18,11 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("problem_id")]
 )
-data class QuestionEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("id") val id: Long? = null,
-    @ColumnInfo("problem_id") val problemId: Int,
-    val uid: String,
+data class ContentEntity(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo("id")
+    val id: Long? = null,
+    @ColumnInfo("problem_id")
+    val problemId: Int,
     val content: String
 )

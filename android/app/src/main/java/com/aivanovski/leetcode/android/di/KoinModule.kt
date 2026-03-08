@@ -3,6 +3,7 @@ package com.aivanovski.leetcode.android.di
 import com.aivanovski.leetcode.android.data.api.ApiClient
 import com.aivanovski.leetcode.android.data.database.AppDatabase
 import com.aivanovski.leetcode.android.data.database.dao.ProblemEntityDao
+import com.aivanovski.leetcode.android.data.database.dao.SyncEntityDao
 import com.aivanovski.leetcode.android.data.repository.AuthRepository
 import com.aivanovski.leetcode.android.data.repository.ProblemRepository
 import com.aivanovski.leetcode.android.data.settings.Settings
@@ -55,6 +56,7 @@ object KoinModule {
         // Database
         single { AppDatabase.buildDatabase(get()) }
         single { provideProblemDao(get()) }
+        single { provideSyncEntityDao(get()) }
 
         // UseCases
         singleOf(::GetDebugCredentialsUseCase)
@@ -81,7 +83,7 @@ object KoinModule {
 
         // ViewModels
         factory { (args: ProblemDetailsArgs) ->
-            ProblemDetailsViewModel(get(), get(), get(), args)
+            ProblemDetailsViewModel(get(), get(), get(), get(), args)
         }
         factory { ProblemListViewModel(get(), get(), get(), get()) }
         factory { RootViewModel(get(), get()) }
@@ -92,4 +94,5 @@ object KoinModule {
     }
 
     private fun provideProblemDao(db: AppDatabase): ProblemEntityDao = db.problemDao
+    private fun provideSyncEntityDao(db: AppDatabase): SyncEntityDao = db.syncEntityDao
 }

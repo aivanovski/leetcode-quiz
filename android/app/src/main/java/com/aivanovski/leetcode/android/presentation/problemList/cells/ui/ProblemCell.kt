@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.PreviewEventProvider
 import com.aivanovski.leetcode.android.presentation.core.compose.preview.ThemedScreenPreview
-import com.aivanovski.leetcode.android.presentation.core.compose.rememberOnClickedCallback
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.CardCornerSize
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.CardElevation
@@ -39,10 +38,6 @@ import com.aivanovski.leetcode.android.presentation.problemList.cells.viewModel.
 fun ProblemCell(viewModel: ProblemCellViewModel) {
     val model = viewModel.model
 
-    val onClick = rememberOnClickedCallback {
-        viewModel.sendEvent(ProblemCellEvent.OnClick(model.problemId))
-    }
-
     Card(
         colors = CardDefaults.cardColors(
             containerColor = AppTheme.theme.colors.cardPrimaryBackground
@@ -56,7 +51,9 @@ fun ProblemCell(viewModel: ProblemCellViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(
-                    onClick = onClick
+                    onClick = {
+                        viewModel.sendEvent(ProblemCellEvent.OnClick(model.problemId))
+                    }
                 )
                 .padding(ElementMargin)
         ) {
@@ -161,12 +158,12 @@ private fun StatItem(
 @Composable
 fun ProblemCellPreview() {
     ThemedScreenPreview(theme = LightTheme) {
-        ProblemCell(newProblemCellViewModel())
+        ProblemCell(newProblemCell())
     }
 }
 
 @Composable
-fun newProblemCellViewModel() =
+fun newProblemCell() =
     ProblemCellViewModel(
         model = ProblemCellModel(
             id = "1",

@@ -1,7 +1,7 @@
 package com.aivanovski.leetcode.android.presentation.problemDetails
 
 import com.aivanovski.leetcode.android.R
-import com.aivanovski.leetcode.android.entity.Problem
+import com.aivanovski.leetcode.android.entity.ProblemWithContent
 import com.aivanovski.leetcode.android.presentation.core.compose.CornersShape
 import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
@@ -60,7 +60,7 @@ class ProblemDetailsCellFactory(
         )
     }
 
-    private fun createHeaderCells(problem: Problem): List<CellViewModel> {
+    private fun createHeaderCells(problem: ProblemWithContent): List<CellViewModel> {
         return listOf(
             SpaceCellViewModel(
                 model = SpaceCellModel(
@@ -70,12 +70,12 @@ class ProblemDetailsCellFactory(
             ),
             ProblemHeaderCellViewModel(
                 model = ProblemHeaderCellModel(
-                    id = "header-${problem.id}",
-                    problemId = problem.id,
-                    number = "#${problem.id}",
-                    title = problem.title,
-                    categoryTitle = problem.categoryTitle,
-                    difficulty = problem.difficulty
+                    id = "header-${problem.problem.id}",
+                    problemId = problem.problem.id,
+                    number = "#${problem.problem.id}",
+                    title = problem.problem.title,
+                    categoryTitle = problem.problem.categoryTitle,
+                    difficulty = problem.problem.difficulty
                 )
             )
         )
@@ -91,14 +91,14 @@ class ProblemDetailsCellFactory(
             ),
             ProblemDescriptionCellViewModel(
                 model = ProblemDescriptionCellModel(
-                    id = "description-${data.problem.id}",
+                    id = "description-${data.problem.problem.id}",
                     htmlContent = data.htmlContent
                 )
             )
         )
     }
 
-    private fun createHintsCells(problem: Problem): List<CellViewModel> {
+    private fun createHintsCells(problem: ProblemWithContent): List<CellViewModel> {
         return listOf(
             SpaceCellViewModel(
                 model = SpaceCellModel(
@@ -108,14 +108,14 @@ class ProblemDetailsCellFactory(
             ),
             ProblemHintsCellViewModel(
                 model = ProblemHintsCellModel(
-                    id = "hints-${problem.id}",
+                    id = "hints-${problem.problem.id}",
                     hints = problem.hints
                 )
             )
         )
     }
 
-    private fun createAlgorithmCells(problem: Problem): List<CellViewModel> {
+    private fun createAlgorithmCells(problem: ProblemWithContent): List<CellViewModel> {
         return buildList {
             add(
                 SpaceCellViewModel(
@@ -174,7 +174,7 @@ class ProblemDetailsCellFactory(
         }
     }
 
-    private fun createSolutionsCells(problem: Problem): List<CellViewModel> {
+    private fun createSolutionsCells(problem: ProblemWithContent): List<CellViewModel> {
         return buildList {
             add(
                 SpaceCellViewModel(

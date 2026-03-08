@@ -1,17 +1,13 @@
 package com.aivanovski.leetcode.android.presentation.problemDetails
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,11 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aivanovski.leetcode.android.R
 import com.aivanovski.leetcode.android.presentation.Screen
 import com.aivanovski.leetcode.android.presentation.core.compose.CenteredBox
+import com.aivanovski.leetcode.android.presentation.core.compose.ErrorContent
 import com.aivanovski.leetcode.android.presentation.core.compose.TextSize
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.CellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.ui.ShapedSpaceCell
@@ -43,12 +39,14 @@ import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SpaceCellViewModel
 import com.aivanovski.leetcode.android.presentation.core.compose.theme.AppTheme
 import com.aivanovski.leetcode.android.presentation.core.compose.toTextStyle
+import com.aivanovski.leetcode.android.presentation.core.mvvm.SubscribeToLifecycleEffect
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.ui.ProblemDescriptionCell
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.ui.ProblemHeaderCell
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.ui.ProblemHintsCell
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.viewModel.ProblemDescriptionCellViewModel
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.viewModel.ProblemHeaderCellViewModel
 import com.aivanovski.leetcode.android.presentation.problemDetails.cells.viewModel.ProblemHintsCellViewModel
+import com.aivanovski.leetcode.android.presentation.problemDetails.model.ProblemDetailsIntent
 import com.aivanovski.leetcode.android.presentation.problemDetails.model.ProblemDetailsState
 
 @Composable
@@ -63,22 +61,24 @@ fun ProblemDetailsScreen(screen: Screen.ProblemDetails) {
 
     ProblemDetailsScreenContent(
         state = state,
-        onReload = viewModel::loadData,
-        onBack = viewModel::navigateBack
+        onIntent = viewModel::sendIntent
     )
+
+    SubscribeToLifecycleEffect(viewModel)
 }
 
 @Composable
 fun ProblemDetailsScreenContent(
     state: ProblemDetailsState,
-    onReload: () -> Unit,
-    onBack: () -> Unit
+    onIntent: (intent: ProblemDetailsIntent) -> Unit
 ) {
     Scaffold(
         topBar = {
             ScreenTopBar(
                 title = (state as? ProblemDetailsState.Data)?.title ?: "",
-                onBack = onBack
+                onBack = {
+                    onIntent.invoke(ProblemDetailsIntent.NavigateBack)
+                }
             )
         }
     ) { padding ->
@@ -95,7 +95,9 @@ fun ProblemDetailsScreenContent(
                 is ProblemDetailsState.Error -> {
                     ErrorContent(
                         message = state.message,
-                        onRetry = onReload
+                        onAction = { actionId ->
+                            onIntent.invoke(ProblemDetailsIntent.OnErrorAction(actionId))
+                        }
                     )
                 }
 
@@ -150,46 +152,13 @@ private fun LoadingContent() {
 }
 
 @Composable
-private fun ErrorContent(
-    message: String,
-    onRetry: () -> Unit
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Error",
-                style = TextSize.TITLE_MEDIUM.toTextStyle(),
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = message,
-                style = TextSize.BODY_MEDIUM.toTextStyle(),
-                color = AppTheme.colors.errorText
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRetry) {
-                Text("Retry")
-            }
-        }
-    }
-}
-
-@Composable
 private fun DataContent(state: ProblemDetailsState.Data) {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
-        items(
-            items = state.cellViewModels
-        ) { viewModel ->
+        for (viewModel in state.cellViewModels) {
             RenderCell(viewModel)
         }
     }

@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.model.SpaceCellModel
 import com.aivanovski.leetcode.android.presentation.core.compose.cells.viewModel.SpaceCellViewModel
+import com.aivanovski.leetcode.android.presentation.core.compose.theme.HalfMargin
 
 @Composable
 fun SpaceCell(viewModel: SpaceCellViewModel) {
@@ -15,7 +16,7 @@ fun SpaceCell(viewModel: SpaceCellViewModel) {
     Spacer(modifier = Modifier.height(height = model.height))
 }
 
-fun newSpaceCell(height: Dp = Dp.Unspecified) =
+fun newSpaceCell(height: Dp = HalfMargin) =
     SpaceCellViewModel(
         model = SpaceCellModel(
             id = "space_cell",

@@ -2,10 +2,12 @@ package com.aivanovski.leetcode.android.data.api
 
 import arrow.core.Either
 import com.aivanovski.leetcode.android.data.api.converters.toProblem
+import com.aivanovski.leetcode.android.data.api.converters.toProblemWithContent
 import com.aivanovski.leetcode.android.data.api.converters.toQuestionnaire
 import com.aivanovski.leetcode.android.data.api.converters.toQuestionnaireListItem
 import com.aivanovski.leetcode.android.data.settings.Settings
 import com.aivanovski.leetcode.android.entity.Problem
+import com.aivanovski.leetcode.android.entity.ProblemWithContent
 import com.aivanovski.leetcode.android.entity.Questionnaire
 import com.aivanovski.leetcode.android.entity.QuestionnaireListItem
 import com.aivanovski.leetcode.android.entity.exception.ApiException
@@ -50,10 +52,10 @@ class ApiClient(
             .httpGet<GetProblemsResponse>(url = urlBuilder.problems())
             .map { response -> response.problems.map { it.toProblem() } }
 
-    suspend fun getProblemById(id: String): Either<ApiException, Problem> =
+    suspend fun getProblemById(id: String): Either<ApiException, ProblemWithContent> =
         httpClient
             .httpGet<GetProblemResponse>(url = urlBuilder.problem(id))
-            .map { response -> response.problem.toProblem() }
+            .map { response -> response.problem.toProblemWithContent() }
 
     suspend fun getQuestionnaires(): Either<ApiException, List<QuestionnaireListItem>> =
         httpClient
