@@ -7,7 +7,7 @@ This repository contains two related applications:
 - `backend/`: Scala 3 backend built with sbt, zio, zio-http, Slick, SQLite.
 - `android/`: Android app built with Gradle/Kotlin, Jetpack Compose, Room, Koin, Ktor client, Arrow `Either`, and a generated `:backend-api` module.
 
-The Scala backend API DTOs are located in `backend/api` project, they are the source of truth for generated Kotlin API in `android/backend-api` project, that are generated  by `backend/codegen`.
+The Scala backend uses protobuf to define it's API, the schema located in `backend/api` project
 
 ## Common Commands
 
@@ -17,7 +17,6 @@ Run backend commands from `backend/`:
 - Run backend tests: `sbt app/test`
 - Compile API client: `sbt apiClient/compile`
 - Build backend fat jar: `sbt app/assembly`
-- Regenerate Android API DTOs: `sbt codegen/generateKotlinClasses`
 
 Run Android commands from `android/`:
 
@@ -39,7 +38,7 @@ Use targeted compile/test commands for small changes when possible, then broaden
 - UI is Jetpack Compose. Reuse existing theme primitives in `presentation/core/compose/theme` and shared cell components in `presentation/core/compose/cells`.
 - Presentation code generally follows Screen/ViewModel/Interactor/model conventions. Keep data loading and business logic in interactors/repositories, not in composables.
 - Register new dependencies in `di/KoinModule.kt` when introducing injectable classes.
-- Do not hand-edit generated files in `android/backend-api`; change the Scala DTOs and run codegen instead.
+- Do not hand-edit generated files in `android/backend-api`;
 
 ## Generated Code And Data
 

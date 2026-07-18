@@ -5,23 +5,24 @@ import com.github.ai.leetcodequiz.presentation.controllers.{
   AnswerController,
   QuestionnaireController
 }
-import com.github.ai.leetcodequiz.utils.transformError
-import zio.ZIO
-import zio.http.{Method, Request, Routes, handler, string}
+import com.github.ai.leetcodequiz.presentation.protoHandler
+import zio.http.{Method, Routes, string}
 
 object QuestionnaireRoutes {
 
   def routes() = Routes(
-    Method.GET / "api" / "questionnaire" -> handler {
-      ZIO.serviceWithZIO[QuestionnaireController](_.getQuestionnaires().transformError())
+    Method.GET / "api" / "questionnaire" -> protoHandler[QuestionnaireController] {
+      (controller, _) => controller.getQuestionnaires()
     } @@ authHandler,
-    Method.GET / "api" / "questionnaire" / string("questionnaireId") -> handler {
-      (request: Request) =>
-        ZIO.serviceWithZIO[QuestionnaireController](_.getQuestionnaire(request).transformError())
+    Method.GET / "api" / "questionnaire" / string("questionnaireId") -> protoHandler[
+      QuestionnaireController
+    ] { (controller, request) =>
+      controller.getQuestionnaire(request)
     } @@ authHandler,
-    Method.POST / "api" / "questionnaire" / string("questionnaireId") -> handler {
-      (request: Request) =>
-        ZIO.serviceWithZIO[AnswerController](_.postAnswer(request).transformError())
+    Method.POST / "api" / "questionnaire" / string("questionnaireId") -> protoHandler[
+      AnswerController
+    ] { (controller, request) =>
+      controller.postAnswer(request)
     } @@ authHandler
   )
 }

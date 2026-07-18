@@ -151,7 +151,7 @@ object Main extends ZIOAppDefault {
 
         // Others
         Layers.database,
-        Layers.jsonSerializer,
+        Layers.protobufSerializer,
         Layers.fileSystemProvider,
         Client.default,
         Layers.streamingProblemParser,
@@ -161,7 +161,6 @@ object Main extends ZIOAppDefault {
       .run
     ()
   }.catchAll { error =>
-    Console.printLineError(s"Application failure: $error") *>
-      ZIO.fail(Throwable(error))
+    ZIO.attempt(error.printStackTrace()).orDie *> ZIO.fail(error)
   }
 }

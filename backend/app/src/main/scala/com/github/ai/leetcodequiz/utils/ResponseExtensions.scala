@@ -6,7 +6,6 @@ import com.github.ai.leetcodequiz.utils.*
 
 import java.util.Base64
 import zio.http.{Body, Header, Headers, MediaType, Response, Status}
-import zio.json.*
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.annotation.tailrec
@@ -48,23 +47,23 @@ extension (exception: DomainError) {
         Headers(
           List(
             Header.WWWAuthenticate.Bearer(realm = "Access"),
-            Header.ContentType(MediaType.application.json)
+            Header.ContentType(MediaType.application.`octet-stream`)
           )
         )
       } else {
         Headers(
           List(
-            Header.ContentType(MediaType.application.json)
+            Header.ContentType(MediaType.application.`octet-stream`)
           )
         )
       },
-      body = Body.fromString(response.toJsonPretty, UTF_8)
+      body = Body.fromArray(response.toByteArray)
     )
   }
+}
 
-  @tailrec
-  private def getRootCauseOrSelf(error: Throwable): Throwable = {
-    if (error.getCause == null) error
-    else getRootCauseOrSelf(error.getCause)
-  }
+@tailrec
+def getRootCauseOrSelf(error: Throwable): Throwable = {
+  if (error.getCause == null) error
+  else getRootCauseOrSelf(error.getCause)
 }
