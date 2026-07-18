@@ -1,17 +1,18 @@
 package com.github.ai.leetcodequiz.utils
 
-import com.github.ai.leetcodequiz.api.ErrorMessageDto
+import com.github.ai.leetcodequiz.api.{ErrorMessageDto, ResponseDto, ResponseType}
+import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.entity.exception.{AuthError, DomainError}
 import com.github.ai.leetcodequiz.utils.*
 
 import java.util.Base64
-import zio.http.{Body, Header, Headers, MediaType, Response, Status}
+import zio.http.{Header, Headers, MediaType, Response, Status}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.annotation.tailrec
 
 extension (exception: DomainError) {
-  def toDomainResponse(): Response = {
+  def toDomainResponse(serializer: ProtobufSerializer): Response = {
     val hasMessage = exception.message.isDefined
     val hasCause = exception.cause.isDefined
 
@@ -30,7 +31,7 @@ extension (exception: DomainError) {
 
     val isAuthError = rootCause.isInstanceOf[AuthError] || exception.isInstanceOf[AuthError]
 
-    val response = ErrorMessageDto(
+    val errorMessage = ErrorMessageDto(
       message = exception.message.map(_.trim).getOrElse(""),
       exception = rootCause.toString.trim,
       stacktraceBase64 = encodedStacktrace,
@@ -57,13 +58,19 @@ extension (exception: DomainError) {
           )
         )
       },
-      body = Body.fromArray(response.toByteArray)
+      body = serializer.serializeToBody(
+        ResponseDto(
+          responseType = ResponseType.UNDEFINED,
+          errorMessageDto = Some(errorMessage),
+          body = ResponseDto.Body.Empty
+        )
+      )
     )
   }
-}
 
-@tailrec
-def getRootCauseOrSelf(error: Throwable): Throwable = {
-  if (error.getCause == null) error
-  else getRootCauseOrSelf(error.getCause)
+  @tailrec
+  private def getRootCauseOrSelf(error: Throwable): Throwable = {
+    if (error.getCause == null) error
+    else getRootCauseOrSelf(error.getCause)
+  }
 }

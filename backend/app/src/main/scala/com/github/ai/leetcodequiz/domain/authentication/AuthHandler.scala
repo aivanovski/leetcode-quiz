@@ -1,5 +1,6 @@
 package com.github.ai.leetcodequiz.domain.authentication
 
+import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.utils.toDomainResponse
 import com.github.ai.leetcodequiz.entity.exception.{InvalidAuthTokenError, MissingAuthTokenError}
@@ -9,10 +10,15 @@ import zio.direct.*
 
 object AuthHandler {
 
-  val authHandler: HandlerAspect[AuthService, Unit] =
+  val authHandler: HandlerAspect[AuthService & ProtobufSerializer, Unit] =
     HandlerAspect.interceptIncomingHandler(Handler.fromFunctionZIO[Request] { request =>
-      handleAuth(request)
-        .mapError(error => error.toDomainResponse())
+      defer {
+        val serializer = ZIO.service[ProtobufSerializer].run
+
+        handleAuth(request)
+          .mapError(error => error.toDomainResponse(serializer))
+          .run
+      }
     })
 
   private def handleAuth(request: Request) = defer {
