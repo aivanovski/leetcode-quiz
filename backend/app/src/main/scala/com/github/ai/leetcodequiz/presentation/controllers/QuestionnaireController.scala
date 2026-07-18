@@ -1,14 +1,14 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
+import com.github.ai.leetcodequiz.api.PostSubmissionRequest
 import com.github.ai.leetcodequiz.utils.{
   getLastUrlParameter,
   parseUid,
-  readBodyAsString,
+  readBodyAsBytes,
   toQuestionnaireItemDto,
   toQuestionnairesItemDto
 }
-import com.github.ai.leetcodequiz.api.response.{
+import com.github.ai.leetcodequiz.api.{
   GetQuestionnaireResponse,
   GetQuestionnairesResponse,
   PostSubmissionResponse
@@ -19,7 +19,6 @@ import com.github.ai.leetcodequiz.data.db.repository.{
   QuestionRepository,
   QuestionnaireRepository
 }
-import com.github.ai.leetcodequiz.data.json.JsonSerializer
 import com.github.ai.leetcodequiz.domain.usecases.{
   CreateNewQuestionnaireUseCase,
   GetQuestionnaireStatsUseCase,
@@ -39,13 +38,12 @@ class QuestionnaireController(
   private val getStatsUseCase: GetQuestionnaireStatsUseCase,
   private val problemRepository: ProblemRepository,
   private val questionnaireRepository: QuestionnaireRepository,
-  private val questionRepository: QuestionRepository,
-  private val jsonSerializer: JsonSerializer
+  private val questionRepository: QuestionRepository
 ) {
 
   def getQuestionnaire(
     request: Request
-  ): IO[DomainError, Response] = defer {
+  ): IO[DomainError, GetQuestionnaireResponse] = defer {
     val uid = request
       .getLastUrlParameter()
       .flatMap(str => str.parseUid())
@@ -64,10 +62,10 @@ class QuestionnaireController(
       questionUidToQuestionMap = questionUidToQuestionMap
     ).run
 
-    Response.json(jsonSerializer.serialize(GetQuestionnaireResponse(questionnaireDto)))
+    GetQuestionnaireResponse(questionnaireDto)
   }
 
-  def getQuestionnaires(): IO[DomainError, Response] = defer {
+  def getQuestionnaires(): IO[DomainError, GetQuestionnairesResponse] = defer {
     val shouldCreateNew = createQuestionnaireUseCase.shouldCreateNewQuestionnaire().run
     if (shouldCreateNew) {
       createQuestionnaireUseCase.createNewQuestionnaire().run
@@ -96,7 +94,7 @@ class QuestionnaireController(
       )
       .run
 
-    Response.json(jsonSerializer.serialize(GetQuestionnairesResponse(questionnaireDtos)))
+    GetQuestionnairesResponse(questionnaireDtos)
   }
 
   private def getNextQuestions(

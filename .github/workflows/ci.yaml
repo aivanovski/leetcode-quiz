@@ -46,38 +46,6 @@ jobs:
       - name: Run scalafmt check
         run: cd backend && sbt scalafmtCheck
 
-  check-server-api:
-    name: Check server API
-    needs: [ check-kotlin-code-format ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Setup SBT
-        uses: sbt/setup-sbt@v1
-
-      - name: Cache Dependencies
-        uses: coursier/cache-action@v6
-
-      - name: Generate Kotlin DTO classes
-        run: cd backend && sbt codegen/generateKotlinClasses
-
-      - name: Verify generated API classes are up to date
-        run: |
-          if ! git diff --quiet -- android/backend-api; then
-            echo "::error::Generated Kotlin DTO classes are out of date in android/backend-api. Run 'cd backend && sbt codegen/generateKotlinClasses' and commit the changes."
-            git status --short -- android/backend-api
-            git diff -- android/backend-api
-            exit 1
-          fi
-
   build-android-app:
     name: Build Android app
     needs: [ check-kotlin-code-format ]

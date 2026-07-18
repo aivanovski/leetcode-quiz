@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package com.github.ai.leetcodequiz.api;
+
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  flat_package: true
+  preserve_unknown_fields: false
+};
+
+option java_multiple_files = true;
+option java_package = "com.github.ai.leetcodequiz.api";
+
+enum ResponseType {
+  UNDEFINED = 0;
+  GET_PROBLEM = 1;
+  GET_PROBLEMS = 2;
+  GET_QUESTIONNAIRE = 3;
+  GET_QUESTIONNAIRES = 4;
+  GET_QUESTIONS = 5;
+  GET_UNANSWERED_QUESTIONS = 6;
+  POST_SUBMISSION = 7;
+  POST_LOGIN = 8;
+  POST_SIGNUP = 9;
+}
+
+message ResponseDto {
+  ResponseType response_type = 1;
+  optional ErrorMessageDto error_message_dto = 2;
+  oneof body {
+    GetProblemResponse problem_response = 3;
+    GetProblemsResponse problems_response = 4;
+    GetQuestionnaireResponse questionnaire_response = 5;
+    GetQuestionnairesResponse questionnaires_response = 6;
+    GetQuestionsResponse questions_response = 7;
+    GetUnansweredQuestionsResponse unanswered_questions_response = 8;
+    PostSubmissionResponse submission_response = 9;
+    LoginResponse login_response = 10;
+    SignupResponse signup_response = 11;
+  }
+}
+
+message ErrorMessageDto {
+  string message = 1;
+  string exception = 2;
+  string stacktrace_base64 = 3;
+  repeated string stacktrace_lines = 4;
+}
+
+message ProblemItemDto {
+  int32 id = 1;
+  string title = 2;
+  string content = 3;
+  repeated string hints = 4;
+  string category_title = 5;
+  string difficulty = 6;
+  string url = 7;
+  repeated SolutionItemDto solutions = 8;
+  repeated QuestionItemDto questions = 9;
+  int32 likes = 10;
+  int32 dislikes = 11;
+}
+
+message ProblemsItemDto {
+  int32 id = 1;
+  string title = 2;
+  string category_title = 3;
+  string difficulty = 4;
+  string url = 5;
+  int32 dislikes = 6;
+  int32 likes = 7;
+}
+
+message QuestionAnswerDto {
+  string id = 1;
+  int32 answer = 2;
+}
+
+message QuestionItemDto {
+  string id = 1;
+  int32 problem_id = 2;
+  string question = 3;
+  string complexity = 4;
+}
+
+message QuestionnaireItemDto {
+  string id = 1;
+  bool is_complete = 2;
+  repeated QuestionItemDto questions = 3;
+  repeated QuestionAnswerDto answers = 4;
+  QuestionnaireStatsDto stats = 5 [(scalapb.field).no_box = true];
+}
+
+message QuestionnaireStatsDto {
+  int32 total_questions = 1;
+  int32 answered = 2;
+  int32 not_answered = 3;
+  int32 answered_positively = 4;
+  int32 answered_negatively = 5;
+}
+
+message QuestionnairesItemDto {
+  string id = 1;
+  bool is_complete = 2;
+  repeated string questions = 3;
+}
+
+message SolutionItemDto {
+  string content_base64 = 1;
+}
+
+message UserDto {
+  string name = 1;
+  string email = 2;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message PostSubmissionRequest {
+  string question_id = 1;
+  int32 answer = 2;
+}
+
+message SignupRequest {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message GetProblemResponse {
+  ProblemItemDto problem = 1 [(scalapb.field).no_box = true];
+}
+
+message GetProblemsResponse {
+  repeated ProblemsItemDto problems = 1;
+}
+
+message GetQuestionnaireResponse {
+  QuestionnaireItemDto questionnaire = 1 [(scalapb.field).no_box = true];
+}
+
+message GetQuestionnairesResponse {
+  repeated QuestionnairesItemDto questionnaires = 1;
+}
+
+message GetQuestionsResponse {
+  repeated QuestionItemDto questions = 1;
+}
+
+message GetUnansweredQuestionsResponse {
+  repeated QuestionItemDto questions = 1;
+}
+
+message LoginResponse {
+  string token = 1;
+  UserDto user = 2 [(scalapb.field).no_box = true];
+}
+
+message PostSubmissionResponse {
+  QuestionnaireItemDto questionnaire = 1 [(scalapb.field).no_box = true];
+}
+
+message SignupResponse {
+  string token = 1;
+  UserDto user = 2 [(scalapb.field).no_box = true];
+}

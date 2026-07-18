@@ -1,15 +1,13 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.{ProblemItemDto, ProblemsItemDto}
-import com.github.ai.leetcodequiz.api.response.{GetProblemResponse, GetProblemsResponse}
+import com.github.ai.leetcodequiz.api.{GetProblemResponse, GetProblemsResponse}
 import com.github.ai.leetcodequiz.data.db.model.ProblemId
 import com.github.ai.leetcodequiz.data.db.repository.{
   ProblemRepository,
   QuestionRepository,
   SolutionRepository
 }
-import com.github.ai.leetcodequiz.data.json.JsonSerializer
-import com.github.ai.leetcodequiz.entity.Problem
+import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.utils.{parseIdFromUrl, toProblemItemDto, toProblemsItemDto}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import zio.*
@@ -20,18 +18,18 @@ class ProblemController(
   private val problemRepository: ProblemRepository,
   private val solutionRepository: SolutionRepository,
   private val questionRepository: QuestionRepository,
-  private val jsonSerializer: JsonSerializer
+  private val protobufSerializer: ProtobufSerializer
 ) {
 
-  def getProblems(): IO[DomainError, Response] = defer {
+  def getProblems(): IO[DomainError, GetProblemsResponse] = defer {
     val problems = problemRepository.getAll().run
     val dtos = problems.map(p => toProblemsItemDto(p))
-    Response.json(jsonSerializer.serialize(GetProblemsResponse(dtos)))
+    GetProblemsResponse(dtos)
   }
 
   def getProblem(
     request: Request
-  ): IO[DomainError, Response] = defer {
+  ): IO[DomainError, GetProblemResponse] = defer {
     val id = request.parseIdFromUrl().map(id => ProblemId(id)).run
     val problem = problemRepository.getById(id = id).run
     val solutions = solutionRepository.findByProblemId(id).run
@@ -46,6 +44,7 @@ class ProblemController(
       question = question,
       solutions = solutions
     )
-    Response.json(jsonSerializer.serialize(GetProblemResponse(dto)))
+
+    GetProblemResponse(dto)
   }
 }

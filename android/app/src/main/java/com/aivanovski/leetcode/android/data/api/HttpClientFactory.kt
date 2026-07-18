@@ -3,8 +3,9 @@ package com.aivanovski.leetcode.android.data.api
 import android.annotation.SuppressLint
 import com.aivanovski.leetcode.android.BuildConfig
 import com.aivanovski.leetcode.android.data.settings.Settings
-import com.github.ai.leetcodequiz.api.request.LoginRequest
-import com.github.ai.leetcodequiz.api.response.LoginResponse
+import com.github.ai.leetcodequiz.api.LoginRequest
+import com.github.ai.leetcodequiz.api.LoginResponse
+import com.github.ai.leetcodequiz.api.loginRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.okhttp.OkHttp
@@ -12,15 +13,12 @@ import io.ktor.client.engine.okhttp.OkHttpConfig
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.kotlinx.json.json
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 object HttpClientFactory {
@@ -43,7 +41,6 @@ object HttpClientFactory {
                 disableSslVerification()
             }
 
-            setupJsonContentNegotiation()
             setupAuthentication(settings, urlBuilder)
             setupLogging(settings)
         }
@@ -60,17 +57,6 @@ object HttpClientFactory {
         }
     }
 
-    private fun HttpClientConfig<OkHttpConfig>.setupJsonContentNegotiation() {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    explicitNulls = false
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-    }
-
     private fun HttpClientConfig<OkHttpConfig>.setupAuthentication(
         settings: Settings,
         apiUrlBuilder: ApiUrlBuilder
@@ -84,10 +70,10 @@ object HttpClientFactory {
                 }
 
                 refreshTokens {
-                    val requestBody = LoginRequest(
-                        email = settings.userEmail ?: "",
+                    val requestBody = loginRequest {
+                        email = settings.userEmail ?: ""
                         password = settings.userPassword ?: ""
-                    )
+                    }
 
                     val tokenResponse = client.httpPost<LoginRequest, LoginResponse>(
                         url = apiUrlBuilder.login(),

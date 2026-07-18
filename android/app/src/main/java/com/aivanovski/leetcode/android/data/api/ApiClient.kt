@@ -13,14 +13,16 @@ import com.aivanovski.leetcode.android.entity.QuestionnaireListItem
 import com.aivanovski.leetcode.android.entity.exception.ApiException
 import com.aivanovski.leetcode.android.entity.exception.AppException
 import com.aivanovski.leetcode.android.utils.mutableStateFlow
-import com.github.ai.leetcodequiz.api.request.LoginRequest
-import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
-import com.github.ai.leetcodequiz.api.response.GetProblemResponse
-import com.github.ai.leetcodequiz.api.response.GetProblemsResponse
-import com.github.ai.leetcodequiz.api.response.GetQuestionnaireResponse
-import com.github.ai.leetcodequiz.api.response.GetQuestionnairesResponse
-import com.github.ai.leetcodequiz.api.response.LoginResponse
-import com.github.ai.leetcodequiz.api.response.PostSubmissionResponse
+import com.github.ai.leetcodequiz.api.GetProblemResponse
+import com.github.ai.leetcodequiz.api.GetProblemsResponse
+import com.github.ai.leetcodequiz.api.GetQuestionnaireResponse
+import com.github.ai.leetcodequiz.api.GetQuestionnairesResponse
+import com.github.ai.leetcodequiz.api.LoginRequest
+import com.github.ai.leetcodequiz.api.LoginResponse
+import com.github.ai.leetcodequiz.api.PostSubmissionRequest
+import com.github.ai.leetcodequiz.api.PostSubmissionResponse
+import com.github.ai.leetcodequiz.api.loginRequest
+import com.github.ai.leetcodequiz.api.postSubmissionRequest
 import io.ktor.client.HttpClient
 
 class ApiClient(
@@ -44,13 +46,16 @@ class ApiClient(
         httpClient
             .httpPost<LoginRequest, LoginResponse>(
                 url = urlBuilder.login(),
-                body = LoginRequest(email, password)
+                body = loginRequest {
+                    this.email = email
+                    this.password = password
+                }
             )
 
     suspend fun getProblems(): Either<AppException, List<Problem>> =
         httpClient
             .httpGet<GetProblemsResponse>(url = urlBuilder.problems())
-            .map { response -> response.problems.map { it.toProblem() } }
+            .map { response -> response.problemsList.map { it.toProblem() } }
 
     suspend fun getProblemById(id: String): Either<ApiException, ProblemWithContent> =
         httpClient
@@ -60,7 +65,7 @@ class ApiClient(
     suspend fun getQuestionnaires(): Either<ApiException, List<QuestionnaireListItem>> =
         httpClient
             .httpGet<GetQuestionnairesResponse>(url = urlBuilder.questionnaires())
-            .map { response -> response.questionnaires.map { it.toQuestionnaireListItem() } }
+            .map { response -> response.questionnairesList.map { it.toQuestionnaireListItem() } }
 
     suspend fun getQuestionnaire(id: String): Either<ApiException, Questionnaire> =
         httpClient
@@ -75,7 +80,10 @@ class ApiClient(
         httpClient
             .httpPost<PostSubmissionRequest, PostSubmissionResponse>(
                 url = urlBuilder.questionnaire(questionnaireId),
-                body = PostSubmissionRequest(questionId, answer)
+                body = postSubmissionRequest {
+                    this.questionId = questionId
+                    this.answer = answer
+                }
             )
             .map { response -> response.questionnaire.toQuestionnaire() }
 

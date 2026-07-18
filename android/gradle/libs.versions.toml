@@ -52,6 +52,8 @@ googleServices = "4.4.4"
 firebase = "34.9.0"
 ktlintPlugin = "14.0.1"
 securityCrypto = "1.1.0"
+protobuf = "4.31.1"
+protobufPlugin = "0.9.5"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -67,6 +69,7 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 room = { id = "androidx.room", version.ref = "room" }
 gooogleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPlugin" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 
 [libraries]
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -148,4 +151,5 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 androidx-securityCrypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 flippable = { group = "com.wajahatkarim", name = "flippable", version.ref = "flippable" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
 firebaseBom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }

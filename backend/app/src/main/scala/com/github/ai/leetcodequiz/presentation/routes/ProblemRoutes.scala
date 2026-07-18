@@ -1,19 +1,19 @@
 package com.github.ai.leetcodequiz.presentation.routes
 
 import com.github.ai.leetcodequiz.domain.authentication.AuthHandler.authHandler
-import com.github.ai.leetcodequiz.utils.transformError
 import com.github.ai.leetcodequiz.presentation.controllers.ProblemController
-import zio.ZIO
+import com.github.ai.leetcodequiz.presentation.protoHandler
 import zio.http.*
 
 object ProblemRoutes {
 
   def routes() = Routes(
-    Method.GET / "api" / "problem" -> handler {
-      ZIO.serviceWithZIO[ProblemController](_.getProblems().transformError())
+    Method.GET / "api" / "problem" -> protoHandler[ProblemController] { (controller, _) =>
+      controller.getProblems()
     } @@ authHandler,
-    Method.GET / "api" / "problem" / string("problemId") -> handler { (request: Request) =>
-      ZIO.serviceWithZIO[ProblemController](_.getProblem(request).transformError())
+    Method.GET / "api" / "problem" / string("problemId") -> protoHandler[ProblemController] {
+      (controller, request) =>
+        controller.getProblem(request)
     } @@ authHandler
   )
 }

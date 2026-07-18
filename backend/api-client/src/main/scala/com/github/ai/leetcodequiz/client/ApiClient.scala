@@ -1,15 +1,16 @@
 package com.github.ai.leetcodequiz.client
 
-import com.github.ai.leetcodequiz.api.{QuestionAnswerDto, QuestionnaireItemDto}
-import com.github.ai.leetcodequiz.api.request.{LoginRequest, PostSubmissionRequest, SignupRequest}
-import com.github.ai.leetcodequiz.api.response.{
+import com.github.ai.leetcodequiz.api.{
   GetQuestionnaireResponse,
+  LoginRequest,
   LoginResponse,
-  PostSubmissionResponse
+  PostSubmissionRequest,
+  QuestionnaireItemDto,
+  ResponseDto,
+  SignupRequest
 }
 import zio.*
 import zio.http.*
-import zio.json.*
 
 type ApiResponse = ZIO[Scope, Throwable, Response]
 
@@ -22,12 +23,8 @@ class ApiClient(
     client.request(
       Request.post(
         path = s"$baseUrl/api/signup",
-        body = Body.fromString(
-          SignupRequest(
-            name = name,
-            email = email,
-            password = password
-          ).toJson
+        body = Body.fromArray(
+          SignupRequest(name = name, email = email, password = password).toByteArray
         )
       )
     )
@@ -37,26 +34,18 @@ class ApiClient(
     password: String = DefaultCredentials.DefaultPassword
   ): ZIO[Scope, Throwable, String] =
     login(email, password)
-      .flatMap(_.body.asString)
-      .flatMap { json =>
-        ZIO
-          .fromEither(json.fromJson[LoginResponse])
-          .mapError(e => Exception(s"Unable to parse json response: $e"))
-      }
-      .map(response => response.token)
+      .flatMap(_.body.asArray)
+      .map(bytes => ResponseDto.parseFrom(bytes))
+      .map(response => response.getLoginResponse.token)
 
   def getQuestionnaireItem(
     questionnaireId: String,
     authToken: String
   ): ZIO[Scope, Throwable, QuestionnaireItemDto] =
     getQuestionnaire(id = questionnaireId, authToken = authToken)
-      .flatMap(_.body.asString)
-      .flatMap { json =>
-        ZIO
-          .fromEither(json.fromJson[GetQuestionnaireResponse])
-          .mapError(e => Exception(s"Unable to parse json response: $e"))
-      }
-      .map(response => response.questionnaire)
+      .flatMap(_.body.asArray)
+      .map(bytes => ResponseDto.parseFrom(bytes))
+      .map(response => response.getQuestionnaireResponse.questionnaire)
 
   def login(
     email: String = DefaultCredentials.DefaultEmail,
@@ -65,7 +54,7 @@ class ApiClient(
     client.request(
       Request.post(
         path = s"$baseUrl/api/login",
-        body = Body.fromString(createLoginRequest(email = email, password = password))
+        body = Body.fromArray(createLoginRequest(email = email, password = password))
       )
     )
 
@@ -154,16 +143,13 @@ class ApiClient(
         method = Method.POST,
         url = URL.decode(s"$baseUrl/api/questionnaire/$questionnaireId").toOption.get,
         headers = Headers(Header.Authorization.Bearer(authToken)),
-        body = Body.fromString(requestBody.toJson)
+        body = Body.fromArray(requestBody.toByteArray)
       )
     )
   }
 
-  private def createLoginRequest(email: String, password: String): String =
-    LoginRequest(
-      email = email,
-      password = password
-    ).toJson
+  private def createLoginRequest(email: String, password: String): Array[Byte] =
+    LoginRequest(email = email, password = password).toByteArray
 
   object DefaultCredentials {
     val DefaultPassword = "abc123"

@@ -32,19 +32,19 @@ fun ProblemItemDto.toProblemWithContent(): ProblemWithContent =
             url = url
         ),
         content = content,
-        hints = hints,
-        solutions = solutions.mapNotNull { solution ->
+        hints = hintsList,
+        solutions = solutionsList.mapNotNull { solution ->
             Base64Utils.decode(solution.contentBase64).getOrNull()
         },
-        questions = questions.map { it.toQuestion() }
+        questions = questionsList.map { it.toQuestion() }
     )
 
 fun QuestionnaireItemDto.toQuestionnaire(): Questionnaire =
     Questionnaire(
         id = id,
         isComplete = isComplete,
-        questions = questions.map { question -> question.toQuestion() },
-        answers = answers.map { (id, answer) -> QuestionAnswer(id, answer) },
+        questions = questionsList.map { question -> question.toQuestion() },
+        answers = answersList.map { item -> QuestionAnswer(item.id, item.answer) },
         stats = stats
     )
 
@@ -52,7 +52,7 @@ fun QuestionnairesItemDto.toQuestionnaireListItem(): QuestionnaireListItem =
     QuestionnaireListItem(
         id = id,
         isComplete = isComplete,
-        questionsIds = questions
+        questionsIds = questionsList
     )
 
 fun QuestionItemDto.toQuestion(): Question =

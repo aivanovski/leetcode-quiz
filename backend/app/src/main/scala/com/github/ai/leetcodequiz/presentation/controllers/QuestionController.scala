@@ -1,24 +1,18 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.QuestionItemDto
-import com.github.ai.leetcodequiz.api.response.GetQuestionsResponse
-import com.github.ai.leetcodequiz.data.db.model.QuestionEntity
+import com.github.ai.leetcodequiz.api.GetQuestionsResponse
 import com.github.ai.leetcodequiz.data.db.repository.{ProblemRepository, QuestionRepository}
-import com.github.ai.leetcodequiz.data.json.JsonSerializer
-import com.github.ai.leetcodequiz.entity.Problem
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.toQuestionItemDto
 import zio.*
 import zio.direct.*
-import zio.http.Response
 
 class QuestionController(
   private val problemRepository: ProblemRepository,
-  private val questionRepository: QuestionRepository,
-  private val jsonSerializer: JsonSerializer
+  private val questionRepository: QuestionRepository
 ) {
 
-  def getHints(): IO[DomainError, Response] = defer {
+  def getQuestions(): IO[DomainError, GetQuestionsResponse] = defer {
     val questions = questionRepository.getAll().run
     val problems = problemRepository.getAll().run
 
@@ -34,6 +28,6 @@ class QuestionController(
       toQuestionItemDto(question)
     }
 
-    Response.json(jsonSerializer.serialize(GetQuestionsResponse(questionDtos)))
+    GetQuestionsResponse(questionDtos)
   }
 }

@@ -32,7 +32,7 @@ extension (request: Request) {
     id
   }
 
-  def readBodyAsString(): IO[DomainError, String] =
-    request.body.asString
+  def readBodyAsBytes(): IO[DomainError, Array[Byte]] =
+    request.body.asArray
       .mapError(DomainError(_))
 }

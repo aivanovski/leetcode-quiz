@@ -3,7 +3,9 @@ package com.aivanovski.leetcode.android.data.api
 import arrow.core.Either
 import com.aivanovski.leetcode.android.entity.exception.ApiException
 import com.aivanovski.leetcode.android.entity.exception.NetworkException
-import com.github.ai.leetcodequiz.api.ErrorMessageDto
+import com.github.ai.leetcodequiz.api.ProtobufResponseMapper
+import com.github.ai.leetcodequiz.api.ResponseDto
+import com.google.protobuf.MessageLite
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -13,51 +15,43 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import java.io.IOException
-import timber.log.Timber
 
-suspend inline fun <reified Req, reified Resp> HttpClient.httpPost(
+suspend inline fun <reified Req : MessageLite, reified Resp> HttpClient.httpPost(
     url: String,
     body: Req
-) = send<Req, Resp>(RequestType.POST, url, body)
+) = send<Resp>(RequestType.POST, url, body)
 
-suspend inline fun <reified Resp> HttpClient.httpGet(url: String) =
-    send<Unit, Resp>(RequestType.GET, url, Unit)
+suspend inline fun <reified Resp> HttpClient.httpGet(url: String) = send<Resp>(RequestType.GET, url)
 
-suspend inline fun <reified Req, reified Resp> HttpClient.send(
+suspend inline fun <reified Resp> HttpClient.send(
     type: RequestType,
     url: String,
-    body: Req
+    requestBody: MessageLite? = null
 ): Either<ApiException, Resp> =
     Either
         .catch {
             val response = when (type) {
                 RequestType.GET -> get(urlString = url)
-                RequestType.POST -> {
-                    post(urlString = url) {
-                        contentType(ContentType.Application.Json)
-                        setBody(body)
-                    }
+                RequestType.POST -> post(urlString = url) {
+                    contentType(ContentType.Application.OctetStream)
+                    setBody(requireNotNull(requestBody).toByteArray())
                 }
             }
 
+            val responseDto = ResponseDto.parseFrom(response.body<ByteArray>())
             if (!response.status.isSuccess()) {
-                val errorBody = try {
-                    response.body<ErrorMessageDto>()
-                } catch (err: Exception) {
-                    Timber.d(err, "Failed to parse error response:")
-                    null
-                }
+                val errorBody = responseDto.errorMessageDto
+                    .takeIf { responseDto.hasErrorMessageDto() }
 
                 throw ApiException(
                     message = errorBody?.message
                         ?: "Invalid response status code: ${response.status.value}",
-                    cause = null,
                     errorResponse = errorBody,
                     status = response.status
                 )
             }
 
-            response.body<Resp>()
+            ProtobufResponseMapper.getResponseBody<Resp>(responseDto)
         }
         .mapLeft { error ->
             when (error) {

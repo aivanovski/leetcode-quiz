@@ -1,17 +1,17 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.request.{LoginRequest, SignupRequest}
-import com.github.ai.leetcodequiz.api.response.{LoginResponse, SignupResponse}
+import com.github.ai.leetcodequiz.api.{LoginRequest, SignupRequest}
+import com.github.ai.leetcodequiz.api.{LoginResponse, SignupResponse}
 import com.github.ai.leetcodequiz.data.db.model.{UserEntity, UserUid}
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
-import com.github.ai.leetcodequiz.data.json.JsonSerializer
+import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.PasswordService
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.entity.exception.DomainError
-import com.github.ai.leetcodequiz.utils.{readBodyAsString, toUserDto}
+import com.github.ai.leetcodequiz.utils.{readBodyAsBytes, toUserDto}
 import zio.*
 import zio.direct.*
-import zio.http.{Request, Response}
+import zio.http.Request
 
 import java.util.UUID
 
@@ -19,13 +19,13 @@ class AuthController(
   private val userRepository: UserRepository,
   private val passwordService: PasswordService,
   private val jwtService: AuthService,
-  private val jsonSerializer: JsonSerializer
+  private val protobufSerializer: ProtobufSerializer
 ) {
 
-  def signup(request: Request): IO[DomainError, Response] = defer {
+  def signup(request: Request): IO[DomainError, SignupResponse] = defer {
     val body = request
-      .readBodyAsString()
-      .flatMap { text => jsonSerializer.deserialize[SignupRequest](text) }
+      .readBodyAsBytes()
+      .flatMap { bytes => protobufSerializer.deserialize[SignupRequest](bytes) }
       .run
 
     val existingUser = userRepository.findByEmail(body.email).run
@@ -43,15 +43,13 @@ class AuthController(
     userRepository.add(user).run
 
     val token = jwtService.createToken(user.uid)
-    val response = SignupResponse(token, toUserDto(user))
-
-    Response.json(jsonSerializer.serialize(response))
+    SignupResponse(token, toUserDto(user))
   }
 
-  def login(request: Request): IO[DomainError, Response] = defer {
+  def login(request: Request): IO[DomainError, LoginResponse] = defer {
     val body = request
-      .readBodyAsString()
-      .flatMap { text => jsonSerializer.deserialize[LoginRequest](text) }
+      .readBodyAsBytes()
+      .flatMap { bytes => protobufSerializer.deserialize[LoginRequest](bytes) }
       .run
 
     val userOption = userRepository
@@ -72,8 +70,6 @@ class AuthController(
     }
 
     val token = jwtService.createToken(user.uid)
-    val response = LoginResponse(token, toUserDto(user))
-
-    Response.json(jsonSerializer.serialize(response))
+    LoginResponse(token, toUserDto(user))
   }
 }

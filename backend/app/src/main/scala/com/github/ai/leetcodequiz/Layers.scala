@@ -22,6 +22,7 @@ import com.github.ai.leetcodequiz.data.db.repository.{
 }
 import com.github.ai.leetcodequiz.data.file.{FileSystemProvider, FileSystemProviderImpl}
 import com.github.ai.leetcodequiz.data.json.{JsonSerializer, ProblemParser, StreamingProblemParser}
+import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.domain.jobs.{
   SyncExternalSolutionsJob,
@@ -111,13 +112,14 @@ object Layers {
 
   // Controllers
   val problemController = ZLayer.fromFunction(ProblemController(_, _, _, _))
-  val questionController = ZLayer.fromFunction(QuestionController(_, _, _))
-  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _, _))
+  val questionController = ZLayer.fromFunction(QuestionController(_, _))
+  val questionnaireController = ZLayer.fromFunction(QuestionnaireController(_, _, _, _, _, _))
   val answerController = ZLayer.fromFunction(AnswerController(_, _, _, _))
   val userController = ZLayer.fromFunction(AuthController(_, _, _, _))
 
   // Other
   val jsonSerializer = ZLayer.succeed(JsonSerializer())
+  val protobufSerializer = ZLayer.succeed(ProtobufSerializer())
   val problemParser = ZLayer.fromFunction(ProblemParser(_))
   val streamingProblemParser = ZLayer.succeed(StreamingProblemParser())
   val fileSystemProvider = ZLayer.succeed[FileSystemProvider](FileSystemProviderImpl())

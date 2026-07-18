@@ -1,16 +1,11 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.request.PostSubmissionRequest
-import com.github.ai.leetcodequiz.api.response.PostSubmissionResponse
+import com.github.ai.leetcodequiz.api.PostSubmissionRequest
+import com.github.ai.leetcodequiz.api.PostSubmissionResponse
 import com.github.ai.leetcodequiz.data.db.model.{QuestionUid, QuestionnaireUid}
-import com.github.ai.leetcodequiz.data.db.repository.{
-  ProblemRepository,
-  QuestionRepository,
-  QuestionnaireRepository
-}
-import com.github.ai.leetcodequiz.data.json.JsonSerializer
+import com.github.ai.leetcodequiz.data.db.repository.QuestionRepository
+import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.usecases.{
-  CreateNewQuestionnaireUseCase,
   GetQuestionnaireStatsUseCase,
   SubmitQuestionAnswerUseCase
 }
@@ -18,26 +13,26 @@ import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.{
   getLastUrlParameter,
   parseUid,
-  readBodyAsString,
+  readBodyAsBytes,
   toQuestionnaireItemDto
 }
 import zio.*
 import zio.direct.*
-import zio.http.{Request, Response}
+import zio.http.Request
 
 class AnswerController(
   private val submitAnswerUseCase: SubmitQuestionAnswerUseCase,
   private val getStatsUseCase: GetQuestionnaireStatsUseCase,
   private val questionRepository: QuestionRepository,
-  private val jsonSerializer: JsonSerializer
+  private val protobufSerializer: ProtobufSerializer
 ) {
 
   def postAnswer(
     request: Request
-  ): IO[DomainError, Response] = defer {
+  ): IO[DomainError, PostSubmissionResponse] = defer {
     val body = request
-      .readBodyAsString()
-      .flatMap { text => jsonSerializer.deserialize[PostSubmissionRequest](text) }
+      .readBodyAsBytes()
+      .flatMap { bytes => protobufSerializer.deserialize[PostSubmissionRequest](bytes) }
       .run
 
     val questionnaireUid = request
@@ -70,7 +65,6 @@ class AnswerController(
       questionUidToQuestionMap = questionUidToQuestionMap
     ).run
 
-    Response.json(jsonSerializer.serialize(PostSubmissionResponse(response)))
+    PostSubmissionResponse(response)
   }
-
 }
