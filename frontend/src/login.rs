@@ -1,64 +1,35 @@
 use leptos::{ev::SubmitEvent, prelude::*, task::spawn_local};
 use leptos_router::{NavigateOptions, hooks::use_navigate};
+use std::os::macos::raw::stat;
+use std::time::Duration;
+
+#[derive(Clone)]
+struct LoginState {
+    username: RwSignal<String>,
+    password: RwSignal<String>,
+    error: RwSignal<Option<String>>,
+    is_loading: RwSignal<bool>,
+}
+
+impl LoginState {
+    fn new() -> Self {
+        Self {
+            username: RwSignal::new(String::new()),
+            password: RwSignal::new(String::new()),
+            is_loading: RwSignal::new(false),
+            error: RwSignal::new(None),
+        }
+    }
+}
 
 #[component]
 pub fn LoginPage() -> impl IntoView {
-    let (username, set_username) = signal(String::new());
-    let (password, set_password) = signal(String::new());
-    let (error, set_error) = signal(None::<String>);
-    let (is_loading, set_is_loading) = signal(false);
-
-    let submit = move |event: SubmitEvent| {
-        event.prevent_default();
-
-        let username = username.get().trim().to_owned();
-        let password = password.get();
-
-        if username.is_empty() {
-            set_error.set(Some("Enter your username.".to_owned()));
-            return;
-        }
-
-        if password.is_empty() {
-            set_error.set(Some("Enter your password.".to_owned()));
-            return;
-        }
-
-        set_error.set(None);
-        set_is_loading.set(true);
-
-        // let navigate = navigate.clone();
-        // spawn_local(async move {
-        //     match login(username, password).await {
-        //         Ok(response) => {
-        //             if let Err(storage_error) = store_session(&response) {
-        //                 set_error.set(Some(storage_error));
-        //             } else {
-        //                 session.set(Some(Session {
-        //                     token: response.token,
-        //                     user_name: response.user.name,
-        //                 }));
-        //                 navigate(
-        //                     "/dashboard",
-        //                     NavigateOptions {
-        //                         replace: true,
-        //                         ..Default::default()
-        //                     },
-        //                 );
-        //             }
-        //         }
-        //         Err(login_error) => set_error.set(Some(login_error)),
-        //     }
-        //
-        //     set_is_loading.set(false);
-        // });
-    };
-
+    let state = LoginState::new();
 
     view! {
         <main class="login-page">
             <section class="form-panel">
-                <form on:submit=submit novalidate>
+                <form on:submit=move |event| submit_login(event, &state) novalidate>
                         <label for="username">"Username"</label>
                         <input
                             id="username"
@@ -67,10 +38,10 @@ pub fn LoginPage() -> impl IntoView {
                             autocomplete="username"
                             autofocus
                             placeholder="Enter your username"
-                            prop:value=move || username.get()
+                            prop:value=move || state.username.get()
                             on:input=move |event| {
-                                set_username.set(event_target_value(&event));
-                                set_error.set(None);
+                                state.username.set(event_target_value(&event));
+                                state.error.set(None);
                             }
                         />
 
@@ -83,22 +54,22 @@ pub fn LoginPage() -> impl IntoView {
                             type="password"
                             autocomplete="current-password"
                             placeholder="Enter your password"
-                            prop:value=move || password.get()
+                            prop:value=move || state.password.get()
                             on:input=move |event| {
-                                set_password.set(event_target_value(&event));
-                                set_error.set(None);
+                                state.password.set(event_target_value(&event));
+                                state.error.set(None);
                             }
                         />
 
-                        <Show when=move || error.get().is_some()>
+                        <Show when=move || state.error.get().is_some()>
                             <p class="form-error" role="alert">
-                                {move || error.get().unwrap_or_default()}
+                                {move || state.error.get().unwrap_or_default()}
                             </p>
                         </Show>
 
-                        <button type="submit" disabled=move || is_loading.get()>
+                        <button type="submit" disabled=move || state.is_loading.get()>
                             <Show
-                                when=move || !is_loading.get()
+                                when=move || !state.is_loading.get()
                                 fallback=|| view! { <span class="loader" aria-label="Logging in"></span> }
                             >
                                 "Log in"
@@ -108,4 +79,35 @@ pub fn LoginPage() -> impl IntoView {
             </section>
         </main>
     }
+}
+
+fn submit_login(event: SubmitEvent, state: &LoginState) {
+    event.prevent_default();
+
+    let username = state.username.get().trim().to_owned();
+    let password = state.password.get().trim().to_owned();
+
+    if username.is_empty() {
+        state.error.set(Some("Enter your username.".to_string()));
+        return;
+    }
+
+    if password.is_empty() {
+        state.error.set(Some("Enter your password.".to_string()));
+        return;
+    }
+
+    state.error.set(None);
+    state.is_loading.set(true);
+
+    let error = state.error;
+    let is_loading = state.is_loading;
+
+    set_timeout(
+        move || {
+            error.set(Some("Login is currently unavailable".to_string()));
+            is_loading.set(true);
+        },
+        Duration::from_secs(2),
+    );
 }
