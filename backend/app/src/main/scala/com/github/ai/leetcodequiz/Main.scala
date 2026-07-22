@@ -26,6 +26,7 @@ object Main extends ZIOAppDefault {
       ++ QuestionRoutes.routes()
       ++ QuestionnaireRoutes.routes()
       ++ AuthRoutes.routes())
+      @@ Middleware.cors
       @@ RequestLogger.requestLogger
 
   override val bootstrap: ZLayer[Any, Nothing, Unit] = {
