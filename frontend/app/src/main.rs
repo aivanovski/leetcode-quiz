@@ -1,8 +1,6 @@
-mod login;
-
+use frontend::login::LoginPage;
 use leptos::prelude::*;
 use leptos_router::{components::*, path};
-use crate::login::LoginPage;
 
 fn main() {
     mount_to_body(App)

@@ -1,8 +1,3 @@
-[package]
-name = "frontend"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-leptos = { version = "0.8.20", features = ["csr"] }
-leptos_router = "0.8.11"
+[workspace]
+members = ["app", "backend-api"]
+resolver = "3"

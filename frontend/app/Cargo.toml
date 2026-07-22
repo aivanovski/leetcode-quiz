@@ -1,0 +1,11 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+backend-api = { path = "../backend-api" }
+gloo-net = "0.6.0"
+leptos = { version = "0.8.20", features = ["csr"] }
+leptos_router = "0.8.11"
+prost = "0.14.3"

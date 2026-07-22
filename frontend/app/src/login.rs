@@ -1,7 +1,6 @@
-use leptos::{ev::SubmitEvent, prelude::*, task::spawn_local};
-use leptos_router::{NavigateOptions, hooks::use_navigate};
-use std::os::macos::raw::stat;
-use std::time::Duration;
+use crate::api::client::login;
+use leptos::task::spawn_local;
+use leptos::{ev::SubmitEvent, logging, prelude::*};
 
 #[derive(Clone)]
 struct LoginState {
@@ -103,11 +102,17 @@ fn submit_login(event: SubmitEvent, state: &LoginState) {
     let error = state.error;
     let is_loading = state.is_loading;
 
-    set_timeout(
-        move || {
-            error.set(Some("Login is currently unavailable".to_string()));
-            is_loading.set(true);
-        },
-        Duration::from_secs(2),
-    );
+    spawn_local(async move {
+        match login(username, password).await {
+            Ok(response) => {
+                logging::log!("Login response: {response:?}");
+            }
+            Err(login_error) => {
+                logging::error!("Login request failed: {login_error}");
+                error.set(Some(login_error.to_string()));
+            }
+        }
+
+        is_loading.set(false);
+    });
 }
