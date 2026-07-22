@@ -6,6 +6,7 @@ import com.github.ai.leetcodequiz.api.{
   LoginResponse,
   PostSubmissionRequest,
   QuestionnaireItemDto,
+  RefreshTokenRequest,
   ResponseDto,
   SignupRequest
 }
@@ -55,6 +56,16 @@ class ApiClient(
       Request.post(
         path = s"$baseUrl/api/login",
         body = Body.fromArray(createLoginRequest(email = email, password = password))
+      )
+    )
+
+  def refreshAuthToken(
+    refreshToken: String
+  ): ApiResponse =
+    client.request(
+      Request.post(
+        path = s"$baseUrl/api/auth/refresh",
+        body = Body.fromArray(RefreshTokenRequest(refreshToken = refreshToken).toByteArray)
       )
     )
 
@@ -158,6 +169,6 @@ class ApiClient(
 }
 
 object ApiClient {
-  val DebugBaseUrl = "https://127.0.0.1:8443"
+  val DebugBaseUrl = "http://127.0.0.1:8080"
   val ProdBaseUrl = "https://leetcode.testswithme.org"
 }

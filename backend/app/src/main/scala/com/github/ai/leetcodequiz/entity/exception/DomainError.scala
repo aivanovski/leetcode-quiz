@@ -102,7 +102,16 @@ class AuthError(
 
 class InvalidAuthTokenError(
   cause: Option[Throwable] = None
-) extends AuthError(message = Some("Invalid auth token. Expected: Bearer <token>"), cause = cause)
+) extends AuthError(
+      message = Some("Invalid auth token. Expected: Bearer <token>"),
+      cause = cause
+    )
+
+class InvalidPayloadError
+    extends AuthError(
+      message = Some("Invalid payload in auth token."),
+      cause = None
+    )
 
 class MissingAuthTokenError
     extends AuthError(

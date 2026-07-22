@@ -2,6 +2,7 @@ package com.github.ai.leetcodequiz.domain.authentication
 
 import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
+import com.github.ai.leetcodequiz.entity.AuthToken
 import com.github.ai.leetcodequiz.utils.toDomainResponse
 import com.github.ai.leetcodequiz.entity.exception.{InvalidAuthTokenError, MissingAuthTokenError}
 import zio.ZIO
@@ -23,7 +24,7 @@ object AuthHandler {
 
   private def handleAuth(request: Request) = defer {
     val token = request.header(Header.Authorization) match {
-      case Some(Header.Authorization.Bearer(token)) => ZIO.succeed(token.value.asString).run
+      case Some(Header.Authorization.Bearer(token)) => ZIO.succeed(AuthToken(token.value.asString)).run
       case Some(_) => ZIO.fail(InvalidAuthTokenError()).run
       case None => ZIO.fail(MissingAuthTokenError()).run
     }
@@ -31,8 +32,7 @@ object AuthHandler {
     val authService = ZIO.service[AuthService].run
 
     authService
-      .validateToken(token)
-      .mapError(error => InvalidAuthTokenError(cause = Some(error)))
+      .validateAuthToken(token)
       .run
 
     (request, ())

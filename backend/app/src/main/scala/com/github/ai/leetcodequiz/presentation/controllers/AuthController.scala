@@ -1,12 +1,19 @@
 package com.github.ai.leetcodequiz.presentation.controllers
 
-import com.github.ai.leetcodequiz.api.{LoginRequest, SignupRequest}
-import com.github.ai.leetcodequiz.api.{LoginResponse, SignupResponse}
+import com.github.ai.leetcodequiz.api.{
+  LoginRequest,
+  LoginResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  SignupRequest,
+  SignupResponse
+}
 import com.github.ai.leetcodequiz.data.db.model.{UserEntity, UserUid}
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.PasswordService
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
+import com.github.ai.leetcodequiz.entity.RefreshToken
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.{readBodyAsBytes, toUserDto}
 import zio.*
@@ -18,7 +25,7 @@ import java.util.UUID
 class AuthController(
   private val userRepository: UserRepository,
   private val passwordService: PasswordService,
-  private val jwtService: AuthService,
+  private val authService: AuthService,
   private val protobufSerializer: ProtobufSerializer
 ) {
 
@@ -42,8 +49,13 @@ class AuthController(
 
     userRepository.add(user).run
 
-    val token = jwtService.createToken(user.uid)
-    SignupResponse(token, toUserDto(user))
+    val tokens = authService.createTokens(user.uid)
+
+    SignupResponse(
+      token = tokens.token.toString,
+      refreshToken = tokens.refreshToken.toString,
+      user = toUserDto(user)
+    )
   }
 
   def login(request: Request): IO[DomainError, LoginResponse] = defer {
@@ -69,7 +81,36 @@ class AuthController(
       ZIO.fail(DomainError("Invalid email or password")).run
     }
 
-    val token = jwtService.createToken(user.uid)
-    LoginResponse(token, toUserDto(user))
+    val tokens = authService.createTokens(user.uid)
+
+    LoginResponse(
+      token = tokens.token.toString,
+      refreshToken = tokens.refreshToken.toString,
+      user = toUserDto(user)
+    )
+  }
+
+  def refresh(request: Request): IO[DomainError, RefreshTokenResponse] = defer {
+    val body = request
+      .readBodyAsBytes()
+      .flatMap { bytes => protobufSerializer.deserialize[RefreshTokenRequest](bytes) }
+      .run
+
+    val token = RefreshToken(body.refreshToken)
+
+    val userUid = authService
+      .validateRefreshToken(token)
+      .run
+
+    val tokens = authService.createTokens(userUid = userUid)
+
+    val userOption = userRepository
+      .getByUid(userUid)
+      .run
+
+    RefreshTokenResponse(
+      token = tokens.token.toString,
+      refreshToken = tokens.refreshToken.toString
+    )
   }
 }

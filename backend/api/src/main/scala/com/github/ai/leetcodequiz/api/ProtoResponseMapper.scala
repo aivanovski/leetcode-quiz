@@ -37,6 +37,9 @@ object ProtoResponseMapper {
       case response: SignupResponse =>
         ResponseType.POST_SIGNUP -> ResponseDto.Body.SignupResponse(response)
 
+      case response: RefreshTokenResponse =>
+        ResponseType.REFRESH_TOKEN -> ResponseDto.Body.RefreshTokenResponse(response)
+
       case _ =>
         ResponseType.UNDEFINED -> ResponseDto.Body.Empty
     }

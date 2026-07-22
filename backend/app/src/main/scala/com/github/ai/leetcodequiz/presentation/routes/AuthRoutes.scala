@@ -12,6 +12,9 @@ object AuthRoutes {
     },
     Method.POST / "api" / "login" -> protoHandler[AuthController] { (controller, request) =>
       controller.login(request)
+    },
+    Method.POST / "api" / "auth" / "refresh" -> protoHandler[AuthController] {
+      (controller, request) => controller.refresh(request)
     }
   )
 }

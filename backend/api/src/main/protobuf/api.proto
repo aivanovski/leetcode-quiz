@@ -23,6 +23,7 @@ enum ResponseType {
   POST_SUBMISSION = 7;
   POST_LOGIN = 8;
   POST_SIGNUP = 9;
+  REFRESH_TOKEN = 10;
 }
 
 message ResponseDto {
@@ -38,6 +39,7 @@ message ResponseDto {
     PostSubmissionResponse submission_response = 9;
     LoginResponse login_response = 10;
     SignupResponse signup_response = 11;
+    RefreshTokenResponse refresh_token_response = 12;
   }
 }
 
@@ -131,6 +133,10 @@ message SignupRequest {
   string password = 3;
 }
 
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
 message GetProblemResponse {
   ProblemItemDto problem = 1 [(scalapb.field).no_box = true];
 }
@@ -157,7 +163,8 @@ message GetUnansweredQuestionsResponse {
 
 message LoginResponse {
   string token = 1;
-  UserDto user = 2 [(scalapb.field).no_box = true];
+  string refresh_token = 2;
+  UserDto user = 3 [(scalapb.field).no_box = true];
 }
 
 message PostSubmissionResponse {
@@ -166,5 +173,11 @@ message PostSubmissionResponse {
 
 message SignupResponse {
   string token = 1;
-  UserDto user = 2 [(scalapb.field).no_box = true];
+  string refresh_token = 2;
+  UserDto user = 3 [(scalapb.field).no_box = true];
+}
+
+message RefreshTokenResponse {
+  string token = 1;
+  string refresh_token = 2;
 }

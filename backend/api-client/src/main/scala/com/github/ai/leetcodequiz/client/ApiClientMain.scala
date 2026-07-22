@@ -12,16 +12,17 @@ import zio.http.*
 object ApiClientMain extends ZIOAppDefault {
 
   private val HelpText =
-    """
+    s"""
       |Commands:
       |
       |Options:
-      |--debug                                  Use debug server (default): https://127.0.0.1:8443
+      |--debug                                  Use debug server (default): ${ApiClient.DebugBaseUrl}
       |--prod                                   Use production server
       |
-      |signup $NAME $EMAIL $PASSWORD             Create new user
+      |signup NAME EMAIL PASSWORD                Create new user
       |login                                     Login with default credentials
-      |login $EMAIL $PASSWORD                    Login with specified credentials
+      |login EMAIL PASSWORD                      Login with specified credentials
+      |refresh REFRESH_TOKEN                     Refresh auth tokens
       |problems                                  Get list of problems
       |problem ID                                Get problem by ID
       |questions                                 Get list of questions
@@ -106,6 +107,7 @@ object ApiClientMain extends ZIOAppDefault {
         api.signup(name, email, password).flatMap(printer.print)
       case "login" => api.login().flatMap(printer.print)
       case s"login $email $password" => api.login(email, password).flatMap(printer.print)
+      case s"refresh $refreshToken" => api.refreshAuthToken(refreshToken).flatMap(printer.print)
       case s"problems" =>
         api.getAuthToken().flatMap(token => api.getProblems(token)).flatMap(printer.print)
       case s"problem $id" =>
