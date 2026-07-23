@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.github.ai.leetcodequiz.data.db.model.UserUid
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.entity.AppEnvironment.{DEBUG, PROD}
+import com.github.ai.leetcodequiz.entity.JwtTokenType.{AUTH_TOKEN, REFRESH_TOKEN}
 import com.github.ai.leetcodequiz.entity.exception.{
   DomainError,
   InvalidAuthTokenError,
@@ -28,23 +29,22 @@ class AuthService(
   private val userRepository: UserRepository
 ) {
 
-  private val tokenTimeToLive = appConfig.environment match {
-    case DEBUG => 30.days
-    case PROD => 2.hours
-  }
+  def getTokenTimeToLive(tokenType: JwtTokenType): Duration = {
+    tokenType match {
+      case AUTH_TOKEN =>
+        appConfig.environment match {
+          case DEBUG => 30.days
+          case PROD => 2.hours
+        }
 
-  private val refreshTokenTimeToLive = 60.days
-
-  def createAuthToken(userUid: UserUid): AuthToken = {
-    AuthToken(generateToken(userUid, tokenTimeToLive, JwtTokenType.AUTH_TOKEN))
+      case REFRESH_TOKEN => 60.days
+    }
   }
 
   def createTokens(userUid: UserUid): JwtTokens = {
     JwtTokens(
-      token = AuthToken(generateToken(userUid, tokenTimeToLive, JwtTokenType.AUTH_TOKEN)),
-      refreshToken = RefreshToken(
-        generateToken(userUid, refreshTokenTimeToLive, JwtTokenType.REFRESH_TOKEN)
-      )
+      token = AuthToken(generateToken(userUid, JwtTokenType.AUTH_TOKEN)),
+      refreshToken = RefreshToken(generateToken(userUid, JwtTokenType.REFRESH_TOKEN))
     )
   }
 
@@ -107,11 +107,12 @@ class AuthService(
 
   private def generateToken(
     userUid: UserUid,
-    timeToLive: Duration,
     tokenType: JwtTokenType
   ): String = {
     val now = Instant.now()
     val algorithm = Algorithm.HMAC256(appConfig.jwt.secret)
+
+    val timeToLive = getTokenTimeToLive(tokenType)
 
     JWT
       .create()

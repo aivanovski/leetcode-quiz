@@ -12,7 +12,14 @@ class Printer {
     val bytes = response.body.asArray.run
     val responseDto = ZIO.attempt(ResponseDto.parseFrom(bytes)).run
 
-    Console.printLine(s"Response[code=${response.status.code}]:").run
+    Console.printLine(s"HTTP Status Code: ${response.status.code}").run
+
+    Console.printLine(s"Headers: ${response.headers.size}").run
+
+    response.headers.foreach { header =>
+      Console.printLine(s"    ${header.headerName}=${header.renderedValue}").run
+    }
+
     Console.printLine(TextFormat.printToString(responseDto)).run
 
     ()

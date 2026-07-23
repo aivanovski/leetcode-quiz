@@ -12,13 +12,19 @@ import com.github.ai.leetcodequiz.data.db.model.{UserEntity, UserUid}
 import com.github.ai.leetcodequiz.data.db.repository.UserRepository
 import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.PasswordService
-import com.github.ai.leetcodequiz.domain.authentication.AuthService
-import com.github.ai.leetcodequiz.entity.RefreshToken
+import com.github.ai.leetcodequiz.domain.authentication.{AuthHandler, AuthService}
+import com.github.ai.leetcodequiz.entity.{
+  JwtTokenType,
+  JwtTokens,
+  MessageWithHeaders,
+  RefreshToken
+}
 import com.github.ai.leetcodequiz.entity.exception.DomainError
 import com.github.ai.leetcodequiz.utils.{readBodyAsBytes, toUserDto}
 import zio.*
 import zio.direct.*
-import zio.http.Request
+import zio.http.Cookie.SameSite.Lax
+import zio.http.{Cookie, Header, Path, Request}
 
 import java.util.UUID
 
@@ -58,7 +64,7 @@ class AuthController(
     )
   }
 
-  def login(request: Request): IO[DomainError, LoginResponse] = defer {
+  def login(request: Request): IO[DomainError, MessageWithHeaders[LoginResponse]] = defer {
     val body = request
       .readBodyAsBytes()
       .flatMap { bytes => protobufSerializer.deserialize[LoginRequest](bytes) }
@@ -83,14 +89,19 @@ class AuthController(
 
     val tokens = authService.createTokens(user.uid)
 
-    LoginResponse(
+    val response = LoginResponse(
       token = tokens.token.toString,
       refreshToken = tokens.refreshToken.toString,
       user = toUserDto(user)
     )
+
+    MessageWithHeaders(
+      headers = createAuthHeaders(tokens),
+      message = response
+    )
   }
 
-  def refresh(request: Request): IO[DomainError, RefreshTokenResponse] = defer {
+  def refresh(request: Request): IO[DomainError, MessageWithHeaders[RefreshTokenResponse]] = defer {
     val body = request
       .readBodyAsBytes()
       .flatMap { bytes => protobufSerializer.deserialize[RefreshTokenRequest](bytes) }
@@ -108,9 +119,40 @@ class AuthController(
       .getByUid(userUid)
       .run
 
-    RefreshTokenResponse(
+    val response = RefreshTokenResponse(
       token = tokens.token.toString,
       refreshToken = tokens.refreshToken.toString
+    )
+
+    MessageWithHeaders(
+      headers = createAuthHeaders(tokens),
+      message = response
+    )
+  }
+
+  private def createAuthHeaders(tokens: JwtTokens): List[Header] = {
+    val authTokenCookie = Cookie.Response(
+      name = AuthHandler.AuthTokenCookieName,
+      content = tokens.token.toString,
+      isHttpOnly = true,
+      isSecure = true,
+      sameSite = Option(Lax),
+      path = Option(Path("/api")),
+      maxAge = Some(authService.getTokenTimeToLive(JwtTokenType.AUTH_TOKEN))
+    )
+
+    val refreshTokenHeader = Cookie.Response(
+      name = AuthHandler.RefreshTokenCookieName,
+      content = tokens.refreshToken.toString,
+      isHttpOnly = true,
+      isSecure = true,
+      path = Option(Path("/api/auth/refresh")),
+      maxAge = Some(authService.getTokenTimeToLive(JwtTokenType.REFRESH_TOKEN))
+    )
+
+    List(
+      Header.SetCookie(authTokenCookie),
+      Header.SetCookie(refreshTokenHeader)
     )
   }
 }

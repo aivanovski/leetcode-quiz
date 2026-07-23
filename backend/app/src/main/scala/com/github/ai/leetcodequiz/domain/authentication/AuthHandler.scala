@@ -4,12 +4,15 @@ import com.github.ai.leetcodequiz.data.protobuf.ProtobufSerializer
 import com.github.ai.leetcodequiz.domain.authentication.AuthService
 import com.github.ai.leetcodequiz.entity.AuthToken
 import com.github.ai.leetcodequiz.utils.toDomainResponse
-import com.github.ai.leetcodequiz.entity.exception.{InvalidAuthTokenError, MissingAuthTokenError}
+import com.github.ai.leetcodequiz.entity.exception.MissingAuthTokenError
 import zio.ZIO
 import zio.http.{Handler, HandlerAspect, Header, Request}
 import zio.direct.*
 
 object AuthHandler {
+
+  val AuthTokenCookieName = "authToken"
+  val RefreshTokenCookieName = "refreshToken"
 
   val authHandler: HandlerAspect[AuthService & ProtobufSerializer, Unit] =
     HandlerAspect.interceptIncomingHandler(Handler.fromFunctionZIO[Request] { request =>
@@ -23,17 +26,32 @@ object AuthHandler {
     })
 
   private def handleAuth(request: Request) = defer {
-    val token = request.header(Header.Authorization) match {
-      case Some(Header.Authorization.Bearer(token)) => ZIO.succeed(AuthToken(token.value.asString)).run
-      case Some(_) => ZIO.fail(InvalidAuthTokenError()).run
-      case None => ZIO.fail(MissingAuthTokenError()).run
+    val cookieToken = request
+      .cookie(AuthTokenCookieName)
+      .map(cookie => AuthToken(cookie.content))
+
+    val headerToken = request
+      .header(Header.Authorization)
+      .flatMap {
+        case Header.Authorization.Bearer(token) => Some(AuthToken(token.value.asString))
+        case _ => None
+      }
+
+    if (cookieToken.isEmpty && headerToken.isEmpty) {
+      ZIO.fail(MissingAuthTokenError()).run
     }
 
     val authService = ZIO.service[AuthService].run
 
-    authService
-      .validateAuthToken(token)
-      .run
+    if (headerToken.isDefined) {
+      authService
+        .validateAuthToken(headerToken.get)
+        .run
+    } else if (cookieToken.isDefined) {
+      authService
+        .validateAuthToken(cookieToken.get)
+        .run
+    }
 
     (request, ())
   }

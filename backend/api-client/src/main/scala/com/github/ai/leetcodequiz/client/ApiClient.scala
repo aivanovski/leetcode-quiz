@@ -1,9 +1,7 @@
 package com.github.ai.leetcodequiz.client
 
 import com.github.ai.leetcodequiz.api.{
-  GetQuestionnaireResponse,
   LoginRequest,
-  LoginResponse,
   PostSubmissionRequest,
   QuestionnaireItemDto,
   RefreshTokenRequest,

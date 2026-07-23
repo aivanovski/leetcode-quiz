@@ -103,7 +103,7 @@ class AuthError(
 class InvalidAuthTokenError(
   cause: Option[Throwable] = None
 ) extends AuthError(
-      message = Some("Invalid auth token. Expected: Bearer <token>"),
+      message = Some("Invalid auth token. Expected an authToken cookie or Bearer <token>"),
       cause = cause
     )
 
@@ -115,6 +115,8 @@ class InvalidPayloadError
 
 class MissingAuthTokenError
     extends AuthError(
-      message = Some("Missing authorization header. Expected: Authorization: Bearer <token>"),
+      message = Some(
+        "Missing auth token. Expected Cookie: authToken=<token> or Authorization: Bearer <token>"
+      ),
       cause = None
     )
