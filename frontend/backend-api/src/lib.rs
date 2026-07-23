@@ -6,3 +6,4 @@ pub mod api {
         "/com.github.ai.leetcodequiz.api.rs"
     ));
 }
+
