@@ -24,10 +24,10 @@ fn App() -> impl IntoView {
 
 #[component]
 fn LoginRoute() -> impl IntoView {
-    // if session.get_untracked().is_some() {
-    //     view! { <Redirect path="/dashboard" /> }.into_any()
-    // } else {
-    //     view! { <LoginPage session /> }.into_any()
-    // }
     view! { <LoginPage /> }.into_any()
+}
+
+#[component]
+fn DashboardRoute() -> impl IntoView {
+    view! { }
 }
